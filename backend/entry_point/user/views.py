@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.parsers import MultiPartParser
 from django.contrib.auth import authenticate
 import secrets
 from .models import User, UserDevice, PasswordResetToken
@@ -17,6 +18,7 @@ from .serializers import (
     LoginResponseSerializer, UserSerializer, LoginSerializer,
     MeSerializer, DeviceSerializer, LogoutSerializer,
     PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
+    AvatarSerializer,
 )
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from drf_spectacular.types import OpenApiTypes
@@ -170,7 +172,9 @@ class LoginView(GenericAPIView):
             "email": user.email,
             "name": user.name,
             "surname": user.surname,
+            "patronymic": user.patronymic,
             "is_admin": user.is_admin,
+            "avatar": request.build_absolute_uri(user.avatar.url) if user.avatar else None,
             "device_code": device.key,
         }, status=status.HTTP_200_OK)
 
@@ -192,6 +196,41 @@ class MeView(GenericAPIView):
         logger.info("[MeView] Запрос данных текущего пользователя id=%s", request.user.id)
         serializer = self.get_serializer(request.user)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+@extend_schema(
+    summary="Обновление аватарки",
+    description="Загрузка или замена аватарки текущего пользователя. Отправляйте multipart/form-data с полем avatar.",
+    request={'multipart/form-data': AvatarSerializer},
+    responses={
+        200: OpenApiResponse(description="Аватарка обновлена", response=AvatarSerializer),
+        400: OpenApiResponse(description="Ошибка валидации"),
+    },
+    tags=["User"],
+)
+class AvatarUpdateView(GenericAPIView):
+    serializer_class = AvatarSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser]
+
+    def put(self, request, *args, **kwargs):
+        logger.info("[AvatarUpdateView] user_id=%s", request.user.id)
+        serializer = self.get_serializer(request.user, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        # Remove old avatar file if replacing
+        if request.user.avatar:
+            request.user.avatar.delete(save=False)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        logger.info("[AvatarUpdateView] Удаление аватарки user_id=%s", request.user.id)
+        if request.user.avatar:
+            request.user.avatar.delete(save=False)
+            request.user.avatar = None
+            request.user.save(update_fields=['avatar'])
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @extend_schema(
@@ -338,7 +377,7 @@ class PasswordResetRequestView(GenericAPIView):
         }
 
         # build frontend reset URL (frontend should handle showing form and POSTing to API)
-        frontend = getattr(django_settings, 'FRONTEND_URL', 'http://localhost:3000')
+        frontend = getattr(django_settings, 'FRONTEND_URL', 'http://localhost:8000')
         frontend = frontend.rstrip('/')
         reset_url = f"{frontend}/password-reset/confirm?token={token}"
         context['reset_url'] = reset_url

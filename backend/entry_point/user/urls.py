@@ -5,6 +5,7 @@ from .views import (
     MeView, LogoutView,
     DeviceListView, DeviceDeleteView, AdminDeviceDeleteView,
     PasswordResetRequestView, PasswordResetConfirmView,
+    AvatarUpdateView,
 )
 from .qr_views import GenerateQRView
 
@@ -23,6 +24,7 @@ urlpatterns = [
 
     # User
     path('users/me/', MeView.as_view()),                         # GET  — данные текущего пользователя
+    path('users/me/avatar/', AvatarUpdateView.as_view()),        # PUT/DELETE — аватарка
     path('users/me/devices/', DeviceListView.as_view()),         # GET  — список активных сессий
     path('users/me/devices/<int:device_id>/', DeviceDeleteView.as_view()),   # DELETE — завершить свою сессию
 

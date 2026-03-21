@@ -14,7 +14,7 @@ from drf_spectacular.utils import extend_schema, OpenApiResponse
 
 from user.models import UserDevice
 from .models import QRCode, AccessLog, WeeklyRecord, MonthlyRecord, YearlyRecord
-from .serializers import QRCodeResponseSerializer, QRValidateSerializer
+from .serializers import QRCodeResponseSerializer, QRValidateSerializer, QRValidateResponseSerializer
 
 logger = logging.getLogger('scaner')
 
@@ -131,7 +131,7 @@ class GenerateQRView(APIView):
     ),
     request=QRValidateSerializer,
     responses={
-        200: OpenApiResponse(description="Доступ разрешён"),
+        200: OpenApiResponse(description="Доступ разрешён", response=QRValidateResponseSerializer),
         403: OpenApiResponse(description="Доступ запрещён"),
         404: OpenApiResponse(description="QR-код не найден"),
     },
@@ -202,6 +202,7 @@ class ValidateQRView(GenericAPIView):
                     "name": user.name,
                     "surname": user.surname,
                     "patronymic": user.patronymic,
+                    "avatar": request.build_absolute_uri(user.avatar.url) if user.avatar else None,
                 }
             }, status=status.HTTP_200_OK)
 
@@ -250,5 +251,6 @@ class ValidateQRView(GenericAPIView):
                 "name": user.name,
                 "surname": user.surname,
                 "patronymic": user.patronymic,
+                "avatar": request.build_absolute_uri(user.avatar.url) if user.avatar else None,
             }
         }, status=status.HTTP_200_OK)
