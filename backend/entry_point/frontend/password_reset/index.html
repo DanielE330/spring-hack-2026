@@ -6,6 +6,34 @@
   <meta name="theme-color" content="#f5f7fb" id="meta-theme-color" />
   <title>Сброс пароля — Точка входа</title>
   <link rel="stylesheet" href="style.css" />
+
+  <script>
+    (function() {
+      const metaTheme = document.getElementById('meta-theme-color');
+      const applyTheme = (isDark) => {
+        if (isDark) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          metaTheme.content = '#0b1020';
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          metaTheme.content = '#f5f7fb';
+        }
+      };
+      const storedTheme = localStorage.getItem('theme');
+      const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+      const systemIsDark = mediaQuery.matches;
+      if (storedTheme) {
+        applyTheme(storedTheme === 'dark');
+      } else {
+        applyTheme(systemIsDark);
+      }
+      mediaQuery.addEventListener('change', (e) => {
+        if (!localStorage.getItem('theme')) {
+          applyTheme(e.matches);
+        }
+      });
+    })();
+  </script>
 </head>
 <body>
   <main class="container">
@@ -14,9 +42,8 @@
       <p class="lead">Введите новый пароль для вашего аккаунта.</p>
 
       <form id="resetForm">
-          <input id="token" name="token" type="hidden" />
-        <!-- <p id="tokenNotice" class="note" style="display:none">Токен получен и скрыт по соображениям безопасности.</p>
- -->
+        <input id="token" name="token" type="hidden" />
+        
         <label for="password">Новый пароль</label>
         <input id="password" name="password" type="password" minlength="8" required />
 
@@ -27,25 +54,11 @@
       </form>
 
       <div id="message" role="status" aria-live="polite"></div>
-<!-- 
-      <p class="note">Если у вас есть форма в приложении — используйте её. Эта страница отправляет запрос в API.</p> -->
     </div>
   </main>
 
   <script>
-    // Configuration: change if your API is on a different host
     const API_BASE = (window.API_BASE || 'http://localhost:8000').replace(/\/$/, '');
-
-    // Sync theme-color meta with current system theme for mobile browsers
-    const metaTheme = document.getElementById('meta-theme-color');
-    const setThemeColor = (isDark) => {
-      metaTheme.content = isDark ? '#0b1020' : '#f5f7fb';
-    };
-    const media = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
-    if (media) {
-      setThemeColor(media.matches);
-      media.addEventListener('change', (e) => setThemeColor(e.matches));
-    }
 
     function qs(name) {
       return new URLSearchParams(window.location.search).get(name);
@@ -61,7 +74,6 @@
       const tokenFromUrl = qs('token');
       if (tokenFromUrl) {
         tokenInput.value = tokenFromUrl;
-        document.getElementById('tokenNotice').style.display = 'block';
       }
 
       function showMessage(text, isError=false) {
