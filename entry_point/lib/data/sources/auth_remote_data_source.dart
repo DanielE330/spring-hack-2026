@@ -33,6 +33,34 @@ class AuthRemoteDataSource {
     return user;
   }
 
+  /// POST /auth/create-user/ (admin only)
+  Future<Map<String, dynamic>> createUser({
+    required String email,
+    required String name,
+    required String surname,
+    String? patronymic,
+    required String password,
+    bool isAdmin = false,
+  }) async {
+    AppLogger.i(_tag, 'createUser → email=$email');
+    final body = <String, dynamic>{
+      'email': email,
+      'name': name,
+      'surname': surname,
+      'password': password,
+      'is_admin': isAdmin,
+    };
+    if (patronymic != null && patronymic.isNotEmpty) {
+      body['patronymic'] = patronymic;
+    }
+    final resp = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.createUser,
+      data: body,
+    );
+    AppLogger.i(_tag, 'createUser ✅');
+    return resp.data!;
+  }
+
   Future<void> logout({required String deviceCode}) async {
     AppLogger.i(_tag, 'logout →');
     await _dio.post<dynamic>(

@@ -8,6 +8,7 @@ import '../presentation/pages/qr_page.dart';
 import '../presentation/pages/scanner_page.dart';
 import '../presentation/pages/devices_page.dart';
 import '../presentation/pages/profile_page.dart';
+import '../presentation/pages/create_user_page.dart';
 import '../presentation/pages/auth/login_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -36,8 +37,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         AppLogger.nav(loc, '/home');
         return '/home';
       }
-      // Admin guard для сканера
-      if (loc == '/scan' && !auth.isAdmin) {
+      // Admin guard для сканера и создания пользователя
+      if ((loc == '/scan' || loc == '/create-user') && !auth.isAdmin) {
         AppLogger.nav(loc, '/home');
         return '/home';
       }
@@ -88,6 +89,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           AppLogger.nav('router', '/profile');
           return const ProfilePage();
+        },
+      ),
+      GoRoute(
+        path: '/create-user',
+        builder: (context, state) {
+          AppLogger.nav('router', '/create-user');
+          return const CreateUserPage();
         },
       ),
     ],
