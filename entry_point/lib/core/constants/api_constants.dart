@@ -1,7 +1,6 @@
 class ApiConstants {
   ApiConstants._();
 
-  // Override with --dart-define=BASE_URL=https://your.api
   static const String baseUrl =
       String.fromEnvironment('BASE_URL', defaultValue: 'http://194.113.106.32');
 
