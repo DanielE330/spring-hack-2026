@@ -111,17 +111,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   onPressed: _submit,
                   isLoading: auth.isLoading,
                 ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text('Нет аккаунта?'),
-                    TextButton(
-                      onPressed: () => context.push('/register'),
-                      child: const Text('Зарегистрироваться'),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
