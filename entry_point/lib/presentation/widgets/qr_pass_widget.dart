@@ -178,20 +178,24 @@ class _CircularTimerWithQr extends StatelessWidget {
               strokeWidth: 8,
             ),
             child: Center(
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-                child: Padding(
-                  padding: const EdgeInsets.all(5),
+              // Вписываем QR в круг: диаметр круга ~284px (300 - stroke),
+              // сторона вписанного квадрата = 284/√2 ≈ 200, 
+              // минус отступы 16×2 = 32 → QR ~168px
+              child: ClipOval(
+                child: Container(
+                  width: 270,
+                  height: 270,
+                  color: Colors.white,
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.all(28),
                   child: QrImageView(
                     data: token,
                     version: QrVersions.auto,
-                    size: 200,
+                    size: 214,
                     backgroundColor: Colors.white,
                     errorStateBuilder: (_, _) => const Icon(
                       Icons.error,
-                      size: 80,
+                      size: 60,
                       color: Colors.red,
                     ),
                   ),
