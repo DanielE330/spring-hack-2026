@@ -1,16 +1,21 @@
 import logging
 
 from django.utils import timezone
+from datetime import timedelta
+from django.core.mail import send_mail
+from django.conf import settings as django_settings
 from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.contrib.auth import authenticate
-from .models import User, UserDevice
+import secrets
+from .models import User, UserDevice, PasswordResetToken
 from .serializers import (
     LoginResponseSerializer, UserSerializer, LoginSerializer,
-    MeSerializer, DeviceSerializer, LogoutSerializer
+    MeSerializer, DeviceSerializer, LogoutSerializer,
+    PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
 )
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from drf_spectacular.types import OpenApiTypes
@@ -293,3 +298,93 @@ class AdminDeviceDeleteView(APIView):
         device.delete()
         logger.info("[AdminDeviceDeleteView] Устройство %s удалено админом", device_id)
         return Response({"detail": "Сессия завершена"}, status=status.HTTP_200_OK)
+
+
+@extend_schema(
+    summary="Запрос сброса пароля",
+    description="Отправляет письмо с токеном для сброса пароля на указанный email. Всегда возвращает 200 (даже если email не найден).",
+    request=PasswordResetRequestSerializer,
+    responses={200: OpenApiResponse(description="Письмо отправлено (если email существует)")},
+    tags=["Auth"],
+)
+class PasswordResetRequestView(GenericAPIView):
+    serializer_class = PasswordResetRequestSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data['email']
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            # Не раскрываем существование email
+            return Response({"detail": "Если email зарегистрирован, письмо будет отправлено."}, status=status.HTTP_200_OK)
+
+        timeout = getattr(django_settings, 'PASSWORD_RESET_TIMEOUT_MINUTES', 30)
+        token = secrets.token_urlsafe(32)
+        expires_at = timezone.now() + timedelta(minutes=timeout)
+        PasswordResetToken.objects.create(user=user, token=token, expires_at=expires_at)
+
+        send_mail(
+            subject="Сброс пароля",
+            message=(
+                f"Вы запросили сброс пароля.\n\n"
+                f"Ваш токен: {token}\n\n"
+                f"Токен действителен {timeout} минут.\n\n"
+                f"Для смены пароля отправьте POST-запрос на /auth/password-reset/confirm/ "
+                f"с полями token и new_password.\n\n"
+                f"Если вы не запрашивали сброс пароля — проигнорируйте это письмо."
+            ),
+            from_email=django_settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=False,
+        )
+        logger.info("[PasswordResetRequestView] Токен сброса пароля отправлен на %s", email)
+        return Response({"detail": "Если email зарегистрирован, письмо будет отправлено."}, status=status.HTTP_200_OK)
+
+
+@extend_schema(
+    summary="Подтверждение сброса пароля",
+    description="Принимает токен из письма и новый пароль. Меняет пароль пользователя.",
+    request=PasswordResetConfirmSerializer,
+    responses={
+        200: OpenApiResponse(description="Пароль успешно изменён"),
+        400: OpenApiResponse(description="Токен недействителен или истёк"),
+    },
+    tags=["Auth"],
+)
+class PasswordResetConfirmView(GenericAPIView):
+    serializer_class = PasswordResetConfirmSerializer
+    permission_classes = [AllowAny]
+
+    def post(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        token_str = serializer.validated_data['token']
+        new_password = serializer.validated_data['new_password']
+
+        try:
+            reset_token = PasswordResetToken.objects.select_related('user').get(token=token_str)
+        except PasswordResetToken.DoesNotExist:
+            return Response({"detail": "Токен недействителен."}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not reset_token.is_valid():
+            return Response({"detail": "Токен истёк или уже использован."}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = reset_token.user
+        user.set_password(new_password)
+        user.save()
+
+        reset_token.is_used = True
+        reset_token.save(update_fields=['is_used'])
+
+        # Деактивируем все сессии пользователя для безопасности
+        UserDevice.objects.filter(user=user).delete()
+
+        logger.info("[PasswordResetConfirmView] Пароль изменён для user_id=%s", user.id)
+        return Response({"detail": "Пароль успешно изменён. Все сессии завершены."}, status=status.HTTP_200_OK)

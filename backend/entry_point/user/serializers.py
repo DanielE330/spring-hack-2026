@@ -58,3 +58,12 @@ class MeSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'email', 'name', 'surname', 'patronymic', 'is_admin')
         read_only_fields = fields
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    new_password = serializers.CharField(min_length=8, write_only=True)

@@ -4,6 +4,7 @@ from .views import (
     FirstAdminView, CreateUserView, LoginView,
     MeView, LogoutView,
     DeviceListView, DeviceDeleteView, AdminDeviceDeleteView,
+    PasswordResetRequestView, PasswordResetConfirmView,
 )
 from .qr_views import GenerateQRView
 
@@ -13,10 +14,12 @@ urlpatterns = [
     path('docs/', SpectacularSwaggerView.as_view(url='/schema/')),
 
     # Auth
-    path('auth/first-admin/', FirstAdminView.as_view()),     # POST — боотстрап первого админа
-    path('auth/create-user/', CreateUserView.as_view()),     # POST — создание пользователя (admin)
-    path('auth/login/', LoginView.as_view()),                # POST — вход → device_code
-    path('auth/logout/', LogoutView.as_view()),              # POST — выход, деактивация устройства
+    path('auth/first-admin/', FirstAdminView.as_view()),
+    path('auth/create-user/', CreateUserView.as_view()),
+    path('auth/login/', LoginView.as_view()),
+    path('auth/logout/', LogoutView.as_view()),
+    path('auth/password-reset/', PasswordResetRequestView.as_view()),          # POST — запрос сброса пароля
+    path('auth/password-reset/confirm/', PasswordResetConfirmView.as_view()),  # POST — подтверждение сброса
 
     # User
     path('users/me/', MeView.as_view()),                         # GET  — данные текущего пользователя
