@@ -26,7 +26,7 @@ class UserManager(BaseUserManager):
         if not surname:
             logger.error("[UserManager.create_user] Фамилия не передана")
             raise ValueError('Фамилия обязательна')
-
+    
         user = self.model(
             email=email,
             name=name,
