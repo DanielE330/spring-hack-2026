@@ -162,6 +162,9 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@example.com')
 
 PASSWORD_RESET_TIMEOUT_MINUTES = 30
 
+# Frontend URL used in emails (no trailing slash)
+FRONTEND_URL = config('FRONTEND_URL', default='http://localhost:8000')
+
 
 AUTH_USER_MODEL = 'user.User'
 

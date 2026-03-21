@@ -337,6 +337,12 @@ class PasswordResetRequestView(GenericAPIView):
             'from_email': django_settings.DEFAULT_FROM_EMAIL,
         }
 
+        # build frontend reset URL (frontend should handle showing form and POSTing to API)
+        frontend = getattr(django_settings, 'FRONTEND_URL', 'http://localhost:3000')
+        frontend = frontend.rstrip('/')
+        reset_url = f"{frontend}/password-reset/confirm?token={token}"
+        context['reset_url'] = reset_url
+
         subject = f"[{context['app_name']}] Сброс пароля"
         text_content = render_to_string('user/password_reset_email.txt', context)
         html_content = render_to_string('user/password_reset_email.html', context)

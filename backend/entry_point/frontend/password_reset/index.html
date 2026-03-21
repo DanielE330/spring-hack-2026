@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Сброс пароля — Точка входа</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="container">
+    <div class="card">
+      <h1>Смена пароля</h1>
+      <p class="lead">Введите новый пароль для вашего аккаунта.</p>
+
+      <form id="resetForm">
+        <label for="token">Токен</label>
+        <input id="token" name="token" required />
+
+        <label for="password">Новый пароль</label>
+        <input id="password" name="password" type="password" minlength="8" required />
+
+        <label for="confirm">Подтвердите пароль</label>
+        <input id="confirm" name="confirm" type="password" minlength="8" required />
+
+        <button id="submit" type="submit">Изменить пароль</button>
+      </form>
+
+      <div id="message" role="status" aria-live="polite"></div>
+
+      <p class="note">Если у вас есть форма в приложении — используйте её. Эта страница отправляет запрос в API.</p>
+    </div>
+  </main>
+
+  <script>
+    // Configuration: change if your API is on a different host
+    const API_BASE = (window.API_BASE || 'http://localhost:8000').replace(/\/$/, '');
+
+    function qs(name) {
+      return new URLSearchParams(window.location.search).get(name);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const tokenInput = document.getElementById('token');
+      const pw = document.getElementById('password');
+      const confirm = document.getElementById('confirm');
+      const form = document.getElementById('resetForm');
+      const msg = document.getElementById('message');
+
+      const tokenFromUrl = qs('token');
+      if (tokenFromUrl) {
+        tokenInput.value = tokenFromUrl;
+      }
+
+      function showMessage(text, isError=false) {
+        msg.textContent = text;
+        msg.className = isError ? 'msg error' : 'msg success';
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        msg.textContent = '';
+
+        const token = tokenInput.value.trim();
+        const newPassword = pw.value;
+        const confirmPassword = confirm.value;
+
+        if (!token) { showMessage('Токен обязателен.', true); return; }
+        if (newPassword.length < 8) { showMessage('Пароль должен быть минимум 8 символов.', true); return; }
+        if (newPassword !== confirmPassword) { showMessage('Пароли не совпадают.', true); return; }
+
+        try {
+          showMessage('Отправка запроса...');
+          const res = await fetch(API_BASE + '/auth/password-reset/confirm/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: token, new_password: newPassword }),
+          });
+
+          const data = await res.json().catch(() => ({}));
+
+          if (res.ok) {
+            showMessage('Пароль успешно изменён. Пожалуйста, войдите с новым паролем.');
+            form.reset();
+          } else {
+            showMessage(data.detail || JSON.stringify(data) || 'Ошибка от сервера', true);
+          }
+        } catch (err) {
+          showMessage('Ошибка сети: ' + err.message, true);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
