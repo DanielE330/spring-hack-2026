@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import ValidateQRView
+from .views import GenerateQRView, ValidateQRView
 
 urlpatterns = [
-    path('qr/validate/', ValidateQRView.as_view()),   # POST — валидация QR (только admin)
+    path('qr/generate/', GenerateQRView.as_view()),    # POST — генерация QR
+    path('qr/validate/', ValidateQRView.as_view()),    # POST — валидация QR (только admin)
 ]
