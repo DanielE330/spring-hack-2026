@@ -33,6 +33,24 @@ class QRValidateSerializer(serializers.Serializer):
     token = serializers.CharField(help_text="Значение QR-кода (UUID hex)")
 
 
+class QRValidateUserSerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+    email = serializers.EmailField()
+    name = serializers.CharField()
+    surname = serializers.CharField()
+    patronymic = serializers.CharField(allow_null=True)
+    avatar = serializers.URLField(allow_null=True)
+
+
+class QRValidateResponseSerializer(serializers.Serializer):
+    result = serializers.ChoiceField(choices=['granted'])
+    attendance_event = serializers.ChoiceField(choices=['entry', 'exit'])
+    entered_at = serializers.DateTimeField()
+    exited_at = serializers.DateTimeField(allow_null=True)
+    worked_seconds = serializers.IntegerField(allow_null=True)
+    user = QRValidateUserSerializer()
+
+
 class AccessLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccessLog

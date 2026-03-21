@@ -10,6 +10,19 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('id', 'email', 'name', 'surname', 'patronymic', 'password', 'is_admin')
         read_only_fields = ('id',)
 
+
+class AvatarSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('avatar',)
+
+    def validate_avatar(self, value):
+        if value.size > 5 * 1024 * 1024:
+            raise serializers.ValidationError('Размер файла не должен превышать 5 МБ.')
+        if value.content_type not in ('image/jpeg', 'image/png', 'image/webp'):
+            raise serializers.ValidationError('Допустимые форматы: JPEG, PNG, WebP.')
+        return value
+
     def create(self, validated_data):
         password = validated_data.pop('password')
         user = User.objects.create_user(password=password, **validated_data)
@@ -49,14 +62,16 @@ class LoginResponseSerializer(serializers.Serializer):
     email = serializers.EmailField()
     name = serializers.CharField()
     surname = serializers.CharField()
+    patronymic = serializers.CharField(allow_null=True)
     is_admin = serializers.BooleanField()
+    avatar = serializers.ImageField(allow_null=True)
     device_code = serializers.CharField(help_text="Ключ устройства — используется для авторизации")
 
 
 class MeSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'email', 'name', 'surname', 'patronymic', 'is_admin')
+        fields = ('id', 'email', 'name', 'surname', 'patronymic', 'is_admin', 'avatar')
         read_only_fields = fields
 
 

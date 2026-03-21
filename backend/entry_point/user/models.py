@@ -44,6 +44,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     patronymic = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(unique=True)
     is_admin = models.BooleanField(default=False)
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
 
     objects = UserManager()
 
