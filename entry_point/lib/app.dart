@@ -13,7 +13,7 @@ class App extends ConsumerWidget {
     final themeMode = ref.watch(themeModeProvider);
 
     return MaterialApp.router(
-      title: 'Entry Point',
+      title: 'Точка входа',
       debugShowCheckedModeBanner: false,
       locale: const Locale('ru'),
       theme: LightTheme.theme,

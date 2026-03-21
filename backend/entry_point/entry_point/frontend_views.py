@@ -18,8 +18,9 @@ def serve_password_reset(request, resource: str = None):
         target = base / 'index.html'
     else:
         # Prevent path traversal
-        safe_path = Path(resource).name if '/' not in resource and '\\' not in resource else Path(resource)
-        target = base / resource
+        target = (base / resource).resolve()
+        if not str(target).startswith(str(base.resolve())):
+            raise Http404('Invalid path')
 
     if not target.exists() or not target.is_file():
         raise Http404('Not found')

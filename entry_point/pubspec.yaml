@@ -56,3 +56,8 @@ flutter:
 
   assets:
     - assets/icons/
+
+  fonts:
+    - family: RostelecomBasis
+      fonts:
+        - asset: assets/fonts/RostelecomBasis-Regular.otf

@@ -27,7 +27,7 @@ class HomePage extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 10),
-            const Text('Entry Point'),
+            const Text('Точка входа'),
           ],
         ),
         actions: [

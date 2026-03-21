@@ -386,13 +386,17 @@ class PasswordResetRequestView(GenericAPIView):
         text_content = render_to_string('user/password_reset_email.txt', context)
         html_content = render_to_string('user/password_reset_email.html', context)
 
-        try:
-            msg = EmailMultiAlternatives(subject, text_content, django_settings.DEFAULT_FROM_EMAIL, [email])
-            msg.attach_alternative(html_content, "text/html")
-            msg.send(fail_silently=False)
-            logger.info("[PasswordResetRequestView] Токен сброса пароля отправлен на %s", email)
-        except Exception as e:
-            logger.exception("[PasswordResetRequestView] Ошибка при отправке письма на %s: %s", email, e)
+        import threading
+        def _send():
+            try:
+                msg = EmailMultiAlternatives(subject, text_content, django_settings.DEFAULT_FROM_EMAIL, [email])
+                msg.attach_alternative(html_content, "text/html")
+                msg.send(fail_silently=False)
+                logger.info("[PasswordResetRequestView] Токен сброса пароля отправлен на %s", email)
+            except Exception as e:
+                logger.exception("[PasswordResetRequestView] Ошибка при отправке письма на %s: %s", email, e)
+
+        threading.Thread(target=_send, daemon=True).start()
         return Response({"detail": "Если email зарегистрирован, письмо будет отправлено."}, status=status.HTTP_200_OK)
 
 

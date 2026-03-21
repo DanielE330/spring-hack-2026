@@ -60,7 +60,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
               ),
             ),
             const SizedBox(height: 24),
-            Text('Entry Point',
+            Text('Точка входа',
                 style: Theme.of(context)
                     .textTheme
                     .headlineMedium

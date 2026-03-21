@@ -1,4 +1,4 @@
-# Entry Point — Flutter Application
+# Точка входа — Flutter Application
 
 Кросс-платформенное мобильное приложение (Android / iOS) на Flutter.  
 Стек: Flutter, Dio, flutter_riverpod, flutter_secure_storage, go_router.

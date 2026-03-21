@@ -10,7 +10,7 @@ class DarkTheme {
   static ThemeData get theme {
     return ThemeData(
       brightness: Brightness.dark,
-      fontFamily: 'Roboto',
+      fontFamily: 'RostelecomBasis',
       primaryColor: RtColors.orange,
       scaffoldBackgroundColor: RtColors.darkBg,
       colorScheme: const ColorScheme.dark(
@@ -170,7 +170,7 @@ class LightTheme {
   static ThemeData get theme {
     return ThemeData(
       brightness: Brightness.light,
-      fontFamily: 'Roboto',
+      fontFamily: 'RostelecomBasis',
       primaryColor: RtColors.orange,
       scaffoldBackgroundColor: RtColors.lightBg,
       colorScheme: const ColorScheme.light(

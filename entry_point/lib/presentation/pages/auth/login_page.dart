@@ -65,7 +65,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       color: Theme.of(context).colorScheme.primary,
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Icon(Icons.door_front_door_rounded, size: 44, color: Colors.white),
+                    child: Image.asset( 
+                      'assets/icons/rostelecomatar.png',
+                      width: 64,
+                      height: 64,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),

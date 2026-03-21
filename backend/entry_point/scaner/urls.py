@@ -1,9 +1,9 @@
 from django.urls import path
-from .views import GenerateQRView, ValidateQRView
+from .views import ValidateQRView
 from .export_views import ExportAttendanceExcelView
 
 urlpatterns = [
-    path('qr/generate/', GenerateQRView.as_view()),    # POST — генерация QR
+    # qr/generate/ определён в user.urls (user.qr_views.GenerateQRView)
     path('qr/validate/', ValidateQRView.as_view()),    # POST — валидация QR (только admin)
     path('reports/attendance/', ExportAttendanceExcelView.as_view()),  # GET — Excel-отчёт
 ]
