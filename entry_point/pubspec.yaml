@@ -37,6 +37,9 @@ dependencies:
   # SVG
   flutter_svg: ^2.0.10+1
 
+  # Brightness
+  screen_brightness: ^2.0.1
+
   # Utils
   equatable: ^2.0.5
   intl: ^0.20.1

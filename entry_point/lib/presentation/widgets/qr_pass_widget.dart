@@ -189,7 +189,7 @@ class _CircularTimerWithQr extends StatelessWidget {
                     version: QrVersions.auto,
                     size: 200,
                     backgroundColor: Colors.white,
-                    errorStateBuilder: (_, __) => const Icon(
+                    errorStateBuilder: (_, _) => const Icon(
                       Icons.error,
                       size: 80,
                       color: Colors.red,
