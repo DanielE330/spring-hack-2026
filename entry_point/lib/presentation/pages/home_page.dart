@@ -87,9 +87,17 @@ class HomePage extends ConsumerWidget {
                 _ActionButton(
                   icon: Icons.qr_code_scanner_rounded,
                   label: 'Сканировать QR',
-                  subtitle: 'Только для администратора',
+                  subtitle: 'Проверка пропуска',
                   color: Theme.of(context).colorScheme.secondary,
                   onTap: () => context.push('/scan'),
+                ),
+                const SizedBox(height: 16),
+                _ActionButton(
+                  icon: Icons.person_add_rounded,
+                  label: 'Создать пользователя',
+                  subtitle: 'Добавить сотрудника',
+                  color: Theme.of(context).colorScheme.secondary,
+                  onTap: () => context.push('/create-user'),
                 ),
                 const SizedBox(height: 16),
               ],

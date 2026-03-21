@@ -15,6 +15,7 @@ class App extends ConsumerWidget {
     return MaterialApp.router(
       title: 'Entry Point',
       debugShowCheckedModeBanner: false,
+      locale: const Locale('ru'),
       theme: LightTheme.theme,
       darkTheme: DarkTheme.theme,
       themeMode: themeMode,
