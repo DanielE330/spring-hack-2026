@@ -43,7 +43,7 @@ class SettingsPage extends ConsumerWidget {
                 ref.read(themeModeProvider.notifier).setMode(ThemeMode.dark),
           ),
           _ThemeTile(
-            icon: Icons.brightness_auto_rounded,
+            icon: Icons.brightness_6,
             title: 'Как в системе',
             selected: themeMode == ThemeMode.system,
             onTap: () =>
@@ -52,7 +52,6 @@ class SettingsPage extends ConsumerWidget {
 
           const Divider(height: 32),
 
-          // ── Безопасность ──────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
             child: Text(

@@ -1,18 +1,18 @@
 package com.example.entry_point
 
-import android.os.Bundle
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterFragmentActivity
+import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterFragmentActivity() {
     private val CHANNEL = "com.example.entry_point/screen"
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
 
-        flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
-            MethodChannel(messenger, CHANNEL).setMethodCallHandler { call, result ->
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
+            .setMethodCallHandler { call, result ->
                 if (call.method == "setSecure") {
                     val secure = call.arguments as? Boolean ?: false
                     if (secure) {
@@ -25,6 +25,5 @@ class MainActivity : FlutterFragmentActivity() {
                     result.notImplemented()
                 }
             }
-        }
     }
 }
