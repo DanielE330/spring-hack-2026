@@ -1,8 +1,23 @@
 services:
+  db:
+    image: postgres:15
+    container_name: fhck-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
   backend:
     build: .
     container_name: fhck-backend
     working_dir: /app
+    depends_on:
+      - db
     volumes:
       # Mount source code so changes are reflected without rebuild
       - ./entry_point:/app/entry_point
@@ -10,7 +25,16 @@ services:
       - entry_point/.env
     ports:
       - "${HOST_PORT:-8000}:8000"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: postgres
+      DB_USER: postgres
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
     command: >
       sh -c "python entry_point/manage.py migrate --noinput &&
              python entry_point/manage.py runserver 0.0.0.0:8000"
     restart: unless-stopped
+
+volumes:
+  postgres_data:
