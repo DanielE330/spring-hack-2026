@@ -35,15 +35,6 @@ class _QrPageState extends ConsumerState<QrPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ваш QR-пропуск'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Обновить',
-            onPressed: qr.isLoading
-                ? null
-                : () => ref.read(qrProvider.notifier).generate(forceNew: true),
-          ),
-        ],
       ),
       body: SafeArea(
         child: Center(

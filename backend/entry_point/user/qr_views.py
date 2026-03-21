@@ -42,7 +42,10 @@ class GenerateQRView(APIView):
             return Response({"detail": "Устройство не определено. Авторизуйтесь заново."},
                             status=status.HTTP_401_UNAUTHORIZED)
 
-        force_new = request.query_params.get('force_new') == '1'
+        force_new = (
+            request.query_params.get('force_new') == '1'
+            or request.data.get('force_new') in (True, '1', 1, 'true')
+        )
         logger.info("[GenerateQRView] user_id=%s device_id=%s force_new=%s", request.user.id, device.id, force_new)
 
         if force_new:

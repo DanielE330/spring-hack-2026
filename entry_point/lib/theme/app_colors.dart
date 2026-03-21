@@ -30,6 +30,11 @@ class RtColors {
   static const Color lightTextSecondary = Color(0xFF5C5C70);
   static const Color lightTextHint = Color(0xFF9C9CB0);
 
+  // Фиолетовый
+  static const Color purple = Color(0xFF7B2FBE);
+  static const Color purpleLight = Color(0xFF9B59B6);
+  static const Color purpleDark = Color(0xFF5B1F8E);
+
   // Акценты / статусы
   static const Color success = Color(0xFF2ECC71);
   static const Color error = Color(0xFFE74C3C);

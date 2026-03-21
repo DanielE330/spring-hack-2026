@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 
@@ -17,13 +18,13 @@ class HomePage extends ConsumerWidget {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SvgPicture.asset(
+                'assets/icons/rostelecomatar.svg',
+                width: 32,
+                height: 32,
               ),
-              child: const Icon(Icons.door_front_door_rounded, color: Colors.white, size: 20),
             ),
             const SizedBox(width: 10),
             const Text('Entry Point'),
@@ -31,9 +32,9 @@ class HomePage extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person_outline),
-            tooltip: 'Профиль',
-            onPressed: () => context.push('/profile'),
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Настройки',
+            onPressed: () => context.push('/settings'),
           ),
         ],
       ),
@@ -43,44 +44,50 @@ class HomePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Greeting card
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundColor:
-                            Theme.of(context).colorScheme.primary,
-                        child: Text(
-                          user?.initials ?? '?',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+              // Greeting card — tap to open profile
+              InkWell(
+                onTap: () => context.push('/profile'),
+                borderRadius: BorderRadius.circular(12),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          child: Text(
+                            user?.initials ?? '?',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              user?.fullName ?? 'Пользователь',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              isAdmin ? 'Администратор' : 'Пользователь',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user?.fullName ?? 'Пользователь',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                isAdmin ? 'Администратор' : 'Пользователь',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        Icon(Icons.chevron_right_rounded,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -89,8 +96,8 @@ class HomePage extends ConsumerWidget {
               // Main action
               _ActionButton(
                 icon: Icons.qr_code_rounded,
-                label: 'Показать QR',
-                subtitle: 'Ваш пропуск',
+                label: 'Сгенерировать пропуск',
+                subtitle: 'Ваш QR-пропуск',
                 color: Theme.of(context).colorScheme.primary,
                 onTap: () => context.push('/qr'),
               ),
@@ -115,14 +122,6 @@ class HomePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
               ],
-
-              _ActionButton(
-                icon: Icons.devices_rounded,
-                label: 'Мои устройства',
-                subtitle: 'Управление сессиями',
-                color: Theme.of(context).colorScheme.tertiary,
-                onTap: () => context.push('/devices'),
-              ),
             ],
           ),
         ),

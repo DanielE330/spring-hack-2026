@@ -13,10 +13,12 @@ class QrRemoteDataSource {
 
   Future<QrTokenModel> generate({bool forceNew = false}) async {
     AppLogger.i(_tag, 'generate → forceNew=$forceNew');
-    final url = forceNew
-        ? '${ApiConstants.qrGenerate}?force_new=1'
-        : ApiConstants.qrGenerate;
-    final resp = await _dio.post<Map<String, dynamic>>(url);
+    // Всегда запрашиваем абсолютно новый QR-код
+    final resp = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.qrGenerate,
+      data: {'force_new': true},
+      queryParameters: {'force_new': '1'},
+    );
     final model = QrTokenModel.fromJson(resp.data!);
     AppLogger.i(_tag, 'generate ✅ secondsLeft=${model.secondsLeft}');
     return model;
