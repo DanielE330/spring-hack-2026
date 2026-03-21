@@ -1,0 +1,53 @@
+name: entry_point
+description: "Flutter mobile application — hackathon 2026."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # Network
+  dio: ^5.7.0
+  pretty_dio_logger: ^1.3.1
+
+  # State management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Security / storage
+  flutter_secure_storage: ^9.2.2
+  shared_preferences: ^2.3.3
+
+  # Navigation
+  go_router: ^14.6.2
+
+  # Media
+  image_picker: ^1.1.2
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^6.0.0
+
+  # Utils
+  equatable: ^2.0.5
+  intl: ^0.20.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+  build_runner: ^2.4.13
+  riverpod_generator: ^2.6.1
+  mocktail: ^1.0.4
+
+flutter:
+  uses-material-design: true
+  generate: true

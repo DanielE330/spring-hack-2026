@@ -1,0 +1,27 @@
+from django.urls import path
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from .views import (
+    FirstAdminView, CreateUserView, LoginView,
+    MeView, LogoutView,
+    DeviceListView, DeviceDeleteView, AdminDeviceDeleteView,
+)
+
+urlpatterns = [
+    # Swagger документация
+    path('schema/', SpectacularAPIView.as_view()),
+    path('docs/', SpectacularSwaggerView.as_view(url='/schema/')),
+
+    # Auth
+    path('auth/first-admin/', FirstAdminView.as_view()),     # POST — боотстрап первого админа
+    path('auth/create-user/', CreateUserView.as_view()),     # POST — создание пользователя (admin)
+    path('auth/login/', LoginView.as_view()),                # POST — вход → device_code
+    path('auth/logout/', LogoutView.as_view()),              # POST — выход, деактивация устройства
+
+    # User
+    path('users/me/', MeView.as_view()),                         # GET  — данные текущего пользователя
+    path('users/me/devices/', DeviceListView.as_view()),         # GET  — список активных сессий
+    path('users/me/devices/<int:device_id>/', DeviceDeleteView.as_view()),   # DELETE — завершить свою сессию
+
+    # Admin
+    path('admin/devices/<int:device_id>/', AdminDeviceDeleteView.as_view()),  # DELETE — принудительно завершить любую
+]

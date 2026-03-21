@@ -1,0 +1,16 @@
+services:
+  backend:
+    build: .
+    container_name: fhck-backend
+    working_dir: /app
+    volumes:
+      # Mount source code so changes are reflected without rebuild
+      - ./entry_point:/app/entry_point
+    env_file:
+      - entry_point/.env
+    ports:
+      - "${HOST_PORT:-8000}:8000"
+    command: >
+      sh -c "python entry_point/manage.py migrate --noinput &&
+             python entry_point/manage.py runserver 0.0.0.0:8000"
+    restart: unless-stopped

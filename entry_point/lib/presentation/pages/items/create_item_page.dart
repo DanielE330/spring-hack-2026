@@ -1,0 +1,1 @@
+// Deprecated — items functionality removed
