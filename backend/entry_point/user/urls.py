@@ -5,6 +5,7 @@ from .views import (
     MeView, LogoutView,
     DeviceListView, DeviceDeleteView, AdminDeviceDeleteView,
 )
+from .qr_views import GenerateQRView
 
 urlpatterns = [
     # Swagger документация
@@ -24,4 +25,7 @@ urlpatterns = [
 
     # Admin
     path('admin/devices/<int:device_id>/', AdminDeviceDeleteView.as_view()),  # DELETE — принудительно завершить любую
+
+    # QR
+    path('qr/generate/', GenerateQRView.as_view()),  # POST — генерация QR-кода
 ]
