@@ -55,12 +55,12 @@ class QrNotifier extends StateNotifier<QrState> {
   final QrRepository _repo;
   Timer? _timer;
 
-  Future<void> generate() async {
-    AppLogger.i(_tag, 'generate()');
+  Future<void> generate({bool forceNew = false}) async {
+    AppLogger.i(_tag, 'generate(forceNew=$forceNew)');
     _timer?.cancel();
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final qr = await _repo.generate();
+      final qr = await _repo.generate(forceNew: forceNew);
       state = QrState(qrToken: qr, secondsLeft: qr.secondsLeft, isLoading: false);
       _startCountdown();
       AppLogger.i(_tag, 'generate() ✅ secondsLeft=${qr.secondsLeft}');

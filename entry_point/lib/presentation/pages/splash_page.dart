@@ -35,14 +35,30 @@ class _SplashPageState extends ConsumerState<SplashPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.door_front_door_rounded,
-                size: 72, color: Theme.of(context).colorScheme.primary),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: const Icon(Icons.door_front_door_rounded,
+                  size: 56, color: Colors.white),
+            ),
             const SizedBox(height: 24),
             Text('Entry Point',
                 style: Theme.of(context)
                     .textTheme
                     .headlineMedium
                     ?.copyWith(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(
+              'Ростелеком',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 2,
+                  ),
+            ),
             const SizedBox(height: 32),
             const CircularProgressIndicator(),
           ],

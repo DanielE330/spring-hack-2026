@@ -77,7 +77,7 @@ class _CreateUserPageState extends ConsumerState<CreateUserPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(next.error!),
-            backgroundColor: Colors.red,
+            backgroundColor: const Color(0xFFE74C3C),
           ),
         );
       }

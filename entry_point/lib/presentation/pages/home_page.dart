@@ -14,7 +14,21 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Entry Point'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Icon(Icons.door_front_door_rounded, color: Colors.white, size: 20),
+            ),
+            const SizedBox(width: 10),
+            const Text('Entry Point'),
+          ],
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.person_outline),
@@ -38,13 +52,13 @@ class HomePage extends ConsumerWidget {
                       CircleAvatar(
                         radius: 28,
                         backgroundColor:
-                            Theme.of(context).colorScheme.primaryContainer,
+                            Theme.of(context).colorScheme.primary,
                         child: Text(
                           user?.initials ?? '?',
                           style: Theme.of(context)
                               .textTheme
                               .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
+                              ?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -134,22 +148,28 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final containerBg = isDark ? color.withAlpha(30) : color.withAlpha(18);
+    final iconBg = isDark ? color.withAlpha(50) : color.withAlpha(30);
+    final textColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
+    final subtColor = isDark ? Colors.white70 : const Color(0xFF5C5C70);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: color.withAlpha(25),
+          color: containerBg,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withAlpha(80)),
+          border: Border.all(color: color.withAlpha(isDark ? 60 : 50)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withAlpha(40),
+                color: iconBg,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 28),
@@ -163,14 +183,15 @@ class _ActionButton extends StatelessWidget {
                       style: Theme.of(context)
                           .textTheme
                           .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold)),
+                          ?.copyWith(fontWeight: FontWeight.bold, color: textColor)),
+                  const SizedBox(height: 2),
                   Text(subtitle,
-                      style: Theme.of(context).textTheme.bodySmall),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: subtColor)),
                 ],
               ),
             ),
             Icon(Icons.chevron_right_rounded,
-                color: Theme.of(context).colorScheme.onSurfaceVariant),
+                color: color.withAlpha(180)),
           ],
         ),
       ),

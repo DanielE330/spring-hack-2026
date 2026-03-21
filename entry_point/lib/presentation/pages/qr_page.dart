@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../core/utils/screen_protection.dart';
 import '../providers/qr_provider.dart';
 
 class QrPage extends ConsumerStatefulWidget {
@@ -14,9 +15,17 @@ class _QrPageState extends ConsumerState<QrPage> {
   @override
   void initState() {
     super.initState();
+    enableScreenProtection();
+
     WidgetsBinding.instance.addPostFrameCallback(
       (_) => ref.read(qrProvider.notifier).generate(),
     );
+  }
+
+  @override
+  void dispose() {
+    disableScreenProtection();
+    super.dispose();
   }
 
   @override
@@ -30,8 +39,9 @@ class _QrPageState extends ConsumerState<QrPage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Обновить',
-            onPressed:
-                qr.isLoading ? null : ref.read(qrProvider.notifier).generate,
+            onPressed: qr.isLoading
+                ? null
+                : () => ref.read(qrProvider.notifier).generate(forceNew: true),
           ),
         ],
       ),
@@ -90,7 +100,7 @@ class _QrPageState extends ConsumerState<QrPage> {
                   child: ElevatedButton.icon(
                     onPressed: qr.isLoading
                         ? null
-                        : ref.read(qrProvider.notifier).generate,
+                        : () => ref.read(qrProvider.notifier).generate(forceNew: true),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Обновить QR'),
                   ),
@@ -148,7 +158,7 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.broken_image_outlined, size: 64, color: Colors.red),
+          const Icon(Icons.broken_image_outlined, size: 64, color: Color(0xFFE74C3C)),
           const SizedBox(height: 12),
           Text(error, textAlign: TextAlign.center),
           const SizedBox(height: 16),

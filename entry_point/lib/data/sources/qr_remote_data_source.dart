@@ -11,9 +11,12 @@ class QrRemoteDataSource {
 
   final Dio _dio;
 
-  Future<QrTokenModel> generate() async {
-    AppLogger.i(_tag, 'generate →');
-    final resp = await _dio.post<Map<String, dynamic>>(ApiConstants.qrGenerate);
+  Future<QrTokenModel> generate({bool forceNew = false}) async {
+    AppLogger.i(_tag, 'generate → forceNew=$forceNew');
+    final url = forceNew
+        ? '${ApiConstants.qrGenerate}?force_new=1'
+        : ApiConstants.qrGenerate;
+    final resp = await _dio.post<Map<String, dynamic>>(url);
     final model = QrTokenModel.fromJson(resp.data!);
     AppLogger.i(_tag, 'generate ✅ secondsLeft=${model.secondsLeft}');
     return model;
