@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import QRCode, AccessLog, AttendanceRecord
+from .models import QRCode, AccessLog, WeeklyRecord, MonthlyRecord, YearlyRecord
 
 
 @admin.register(QRCode)
@@ -22,9 +22,34 @@ class AccessLogAdmin(admin.ModelAdmin):
     readonly_fields = ('scanned_at',)
 
 
-@admin.register(AttendanceRecord)
-class AttendanceRecordAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'date', 'entered_at', 'exited_at')
-    list_filter = ('date',)
+@admin.register(WeeklyRecord)
+class WeeklyRecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'week_start', 'week_end', 'days_worked', 'total_hours', 'is_finalized')
+    list_filter = ('week_start', 'is_finalized')
     search_fields = ('user__email', 'user__name', 'user__surname')
-    readonly_fields = ('entered_at', 'exited_at')
+
+    def total_hours(self, obj):
+        return obj.total_hours
+    total_hours.short_description = 'Часы'
+
+
+@admin.register(MonthlyRecord)
+class MonthlyRecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'start_date', 'end_date', 'days_worked', 'total_hours', 'is_finalized')
+    list_filter = ('year', 'month', 'is_finalized')
+    search_fields = ('user__email', 'user__name', 'user__surname')
+
+    def total_hours(self, obj):
+        return obj.total_hours
+    total_hours.short_description = 'Часы'
+
+
+@admin.register(YearlyRecord)
+class YearlyRecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'start_date', 'end_date', 'days_worked', 'total_hours')
+    list_filter = ('year',)
+    search_fields = ('user__email', 'user__name', 'user__surname')
+
+    def total_hours(self, obj):
+        return obj.total_hours
+    total_hours.short_description = 'Часы'
