@@ -2,8 +2,9 @@ import logging
 
 from django.utils import timezone
 from datetime import timedelta
-from django.core.mail import send_mail
 from django.conf import settings as django_settings
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
 from rest_framework.generics import CreateAPIView, GenericAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -328,21 +329,25 @@ class PasswordResetRequestView(GenericAPIView):
         expires_at = timezone.now() + timedelta(minutes=timeout)
         PasswordResetToken.objects.create(user=user, token=token, expires_at=expires_at)
 
-        send_mail(
-            subject="Сброс пароля",
-            message=(
-                f"Вы запросили сброс пароля.\n\n"
-                f"Ваш токен: {token}\n\n"
-                f"Токен действителен {timeout} минут.\n\n"
-                f"Для смены пароля отправьте POST-запрос на /auth/password-reset/confirm/ "
-                f"с полями token и new_password.\n\n"
-                f"Если вы не запрашивали сброс пароля — проигнорируйте это письмо."
-            ),
-            from_email=django_settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[email],
-            fail_silently=False,
-        )
-        logger.info("[PasswordResetRequestView] Токен сброса пароля отправлен на %s", email)
+        context = {
+            'user': user,
+            'token': token,
+            'timeout': timeout,
+            'app_name': 'Точка входа',
+            'from_email': django_settings.DEFAULT_FROM_EMAIL,
+        }
+
+        subject = f"[{context['app_name']}] Сброс пароля"
+        text_content = render_to_string('user/password_reset_email.txt', context)
+        html_content = render_to_string('user/password_reset_email.html', context)
+
+        try:
+            msg = EmailMultiAlternatives(subject, text_content, django_settings.DEFAULT_FROM_EMAIL, [email])
+            msg.attach_alternative(html_content, "text/html")
+            msg.send(fail_silently=False)
+            logger.info("[PasswordResetRequestView] Токен сброса пароля отправлен на %s", email)
+        except Exception as e:
+            logger.exception("[PasswordResetRequestView] Ошибка при отправке письма на %s: %s", email, e)
         return Response({"detail": "Если email зарегистрирован, письмо будет отправлено."}, status=status.HTTP_200_OK)
 
 
