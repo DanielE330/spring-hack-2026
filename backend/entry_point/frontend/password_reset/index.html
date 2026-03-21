@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#f5f7fb" id="meta-theme-color" />
   <title>Сброс пароля — Точка входа</title>
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -13,9 +14,9 @@
       <p class="lead">Введите новый пароль для вашего аккаунта.</p>
 
       <form id="resetForm">
-        <label for="token">Токен</label>
-        <input id="token" name="token" required />
-
+          <input id="token" name="token" type="hidden" />
+        <!-- <p id="tokenNotice" class="note" style="display:none">Токен получен и скрыт по соображениям безопасности.</p>
+ -->
         <label for="password">Новый пароль</label>
         <input id="password" name="password" type="password" minlength="8" required />
 
@@ -26,14 +27,25 @@
       </form>
 
       <div id="message" role="status" aria-live="polite"></div>
-
-      <p class="note">Если у вас есть форма в приложении — используйте её. Эта страница отправляет запрос в API.</p>
+<!-- 
+      <p class="note">Если у вас есть форма в приложении — используйте её. Эта страница отправляет запрос в API.</p> -->
     </div>
   </main>
 
   <script>
     // Configuration: change if your API is on a different host
     const API_BASE = (window.API_BASE || 'http://localhost:8000').replace(/\/$/, '');
+
+    // Sync theme-color meta with current system theme for mobile browsers
+    const metaTheme = document.getElementById('meta-theme-color');
+    const setThemeColor = (isDark) => {
+      metaTheme.content = isDark ? '#0b1020' : '#f5f7fb';
+    };
+    const media = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)');
+    if (media) {
+      setThemeColor(media.matches);
+      media.addEventListener('change', (e) => setThemeColor(e.matches));
+    }
 
     function qs(name) {
       return new URLSearchParams(window.location.search).get(name);
@@ -49,6 +61,7 @@
       const tokenFromUrl = qs('token');
       if (tokenFromUrl) {
         tokenInput.value = tokenFromUrl;
+        document.getElementById('tokenNotice').style.display = 'block';
       }
 
       function showMessage(text, isError=false) {

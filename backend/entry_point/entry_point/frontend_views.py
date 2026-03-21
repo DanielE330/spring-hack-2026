@@ -1,16 +1,30 @@
 from django.http import HttpResponse, Http404
 from django.conf import settings
 from pathlib import Path
+import mimetypes
 
 
-def serve_password_reset(request):
-    """Serve the static password-reset frontend index.html so links to the backend work.
+def serve_password_reset(request, resource: str = None):
+    """Serve files from <BASE_DIR>/frontend/password_reset/.
 
-    Looks for file at <BASE_DIR>/frontend/password_reset/index.html
+    If `resource` is empty or looks like a page (e.g. 'confirm'), serve index.html.
     """
-    path = Path(settings.BASE_DIR) / 'frontend' / 'password_reset' / 'index.html'
-    if not path.exists():
-        raise Http404("Password reset frontend not found")
+    base = Path(settings.BASE_DIR) / 'frontend' / 'password_reset'
+    if not base.exists():
+        raise Http404('Password reset frontend not found')
 
-    content = path.read_text(encoding='utf-8')
-    return HttpResponse(content, content_type='text/html')
+    # Normalize resource
+    if not resource or resource in ('', 'confirm', 'index.html'):
+        target = base / 'index.html'
+    else:
+        # Prevent path traversal
+        safe_path = Path(resource).name if '/' not in resource and '\\' not in resource else Path(resource)
+        target = base / resource
+
+    if not target.exists() or not target.is_file():
+        raise Http404('Not found')
+
+    # Guess content type
+    content_type, _ = mimetypes.guess_type(str(target))
+    content = target.read_bytes()
+    return HttpResponse(content, content_type=content_type or 'application/octet-stream')
