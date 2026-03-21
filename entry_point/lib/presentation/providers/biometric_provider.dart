@@ -119,7 +119,7 @@ class BiometricNotifier extends StateNotifier<BiometricState> {
         localizedReason: 'Подтвердите вашу личность для входа в приложение',
         options: const AuthenticationOptions(
           stickyAuth: true,
-          biometricOnly: true,
+          biometricOnly: false, // fallback на PIN/паттерн при сбое биометрии
         ),
       );
       if (success) {
