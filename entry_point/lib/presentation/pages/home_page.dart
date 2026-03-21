@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 
@@ -14,12 +15,26 @@ class HomePage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Entry Point'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: SvgPicture.asset(
+                'assets/icons/rostelecomatar.svg',
+                width: 32,
+                height: 32,
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Text('Entry Point'),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person_outline),
-            tooltip: 'Профиль',
-            onPressed: () => context.push('/profile'),
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Настройки',
+            onPressed: () => context.push('/settings'),
           ),
         ],
       ),
@@ -29,44 +44,50 @@ class HomePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Greeting card
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundColor:
-                            Theme.of(context).colorScheme.primaryContainer,
-                        child: Text(
-                          user?.initials ?? '?',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
+              // Greeting card — tap to open profile
+              InkWell(
+                onTap: () => context.push('/profile'),
+                borderRadius: BorderRadius.circular(12),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          child: Text(
+                            user?.initials ?? '?',
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              user?.fullName ?? 'Пользователь',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              isAdmin ? 'Администратор' : 'Пользователь',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                user?.fullName ?? 'Пользователь',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                isAdmin ? 'Администратор' : 'Пользователь',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        Icon(Icons.chevron_right_rounded,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -75,8 +96,8 @@ class HomePage extends ConsumerWidget {
               // Main action
               _ActionButton(
                 icon: Icons.qr_code_rounded,
-                label: 'Показать QR',
-                subtitle: 'Ваш пропуск',
+                label: 'Сгенерировать пропуск',
+                subtitle: 'Ваш QR-пропуск',
                 color: Theme.of(context).colorScheme.primary,
                 onTap: () => context.push('/qr'),
               ),
@@ -101,14 +122,6 @@ class HomePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
               ],
-
-              _ActionButton(
-                icon: Icons.devices_rounded,
-                label: 'Мои устройства',
-                subtitle: 'Управление сессиями',
-                color: Theme.of(context).colorScheme.tertiary,
-                onTap: () => context.push('/devices'),
-              ),
             ],
           ),
         ),
@@ -134,22 +147,28 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final containerBg = isDark ? color.withAlpha(30) : color.withAlpha(18);
+    final iconBg = isDark ? color.withAlpha(50) : color.withAlpha(30);
+    final textColor = isDark ? Colors.white : const Color(0xFF1A1A2E);
+    final subtColor = isDark ? Colors.white70 : const Color(0xFF5C5C70);
+
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: color.withAlpha(25),
+          color: containerBg,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withAlpha(80)),
+          border: Border.all(color: color.withAlpha(isDark ? 60 : 50)),
         ),
         child: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: color.withAlpha(40),
+                color: iconBg,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: color, size: 28),
@@ -163,14 +182,15 @@ class _ActionButton extends StatelessWidget {
                       style: Theme.of(context)
                           .textTheme
                           .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.bold)),
+                          ?.copyWith(fontWeight: FontWeight.bold, color: textColor)),
+                  const SizedBox(height: 2),
                   Text(subtitle,
-                      style: Theme.of(context).textTheme.bodySmall),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: subtColor)),
                 ],
               ),
             ),
             Icon(Icons.chevron_right_rounded,
-                color: Theme.of(context).colorScheme.onSurfaceVariant),
+                color: color.withAlpha(180)),
           ],
         ),
       ),

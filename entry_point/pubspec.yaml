@@ -24,6 +24,7 @@ dependencies:
   # Security / storage
   flutter_secure_storage: ^9.2.2
   shared_preferences: ^2.3.3
+  local_auth: ^2.3.0
 
   # Navigation
   go_router: ^14.6.2
@@ -33,9 +34,13 @@ dependencies:
   qr_flutter: ^4.1.0
   mobile_scanner: ^6.0.0
 
+  # SVG
+  flutter_svg: ^2.0.10+1
+
   # Utils
   equatable: ^2.0.5
   intl: ^0.20.1
+
 
 dev_dependencies:
   flutter_test:
@@ -48,3 +53,6 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  assets:
+    - assets/icons/

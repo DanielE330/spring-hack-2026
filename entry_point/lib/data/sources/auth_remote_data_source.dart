@@ -69,5 +69,16 @@ class AuthRemoteDataSource {
     );
     AppLogger.i(_tag, 'logout ✅');
   }
+
+  /// POST /auth/password-reset/
+  Future<Map<String, dynamic>> requestPasswordReset({required String email}) async {
+    AppLogger.i(_tag, 'requestPasswordReset → email=$email');
+    final resp = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.passwordReset,
+      data: {'email': email},
+    );
+    AppLogger.i(_tag, 'requestPasswordReset ✅');
+    return resp.data!;
+  }
 }
 

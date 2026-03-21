@@ -35,7 +35,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
           TextButton(
               onPressed: () => Navigator.pop(c, true),
               child: Text(isCurrent ? 'Выйти и удалить' : 'Удалить',
-                  style: const TextStyle(color: Colors.red))),
+                  style: const TextStyle(color: Color(0xFFE74C3C)))),
         ],
       ),
     );
@@ -73,7 +73,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
+            const Icon(Icons.error_outline, size: 64, color: Color(0xFFE74C3C)),
             const SizedBox(height: 12),
             Text(state.error!),
             const SizedBox(height: 16),
@@ -145,7 +145,7 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
               ),
               isThreeLine: d.ipAddress != null,
               trailing: IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                icon: const Icon(Icons.delete_outline, color: Color(0xFFE74C3C)),
                 onPressed: () =>
                     _confirmDelete(context, d.id, d.isCurrent, d.deviceName),
               ),

@@ -9,9 +9,10 @@ class ApiConstants {
   static const int sendTimeoutMs = 30000;
 
   // Endpoints — Auth
-  static const String login      = '/auth/login/';
-  static const String logout     = '/auth/logout/';
-  static const String createUser = '/auth/create-user/';
+  static const String login           = '/auth/login/';
+  static const String logout          = '/auth/logout/';
+  static const String createUser      = '/auth/create-user/';
+  static const String passwordReset   = '/auth/password-reset/';
 
   // Endpoints — User
   static const String me        = '/users/me/';

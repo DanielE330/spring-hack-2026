@@ -43,7 +43,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     if (auth.error != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(auth.error!), backgroundColor: Colors.red),
+          SnackBar(content: Text(auth.error!), backgroundColor: const Color(0xFFE74C3C)),
         );
       });
     }
@@ -57,18 +57,31 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 48),
+                const SizedBox(height: 32),
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Icon(Icons.door_front_door_rounded, size: 44, color: Colors.white),
+                  ),
+                ),
+                const SizedBox(height: 24),
                 Text(
                   'Добро пожаловать',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                       ),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'Войдите в свой аккаунт',
                   style: Theme.of(context).textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
                 AppInput(

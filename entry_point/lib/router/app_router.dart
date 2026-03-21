@@ -8,8 +8,10 @@ import '../presentation/pages/qr_page.dart';
 import '../presentation/pages/scanner_page.dart';
 import '../presentation/pages/devices_page.dart';
 import '../presentation/pages/profile_page.dart';
+import '../presentation/pages/settings_page.dart';
 import '../presentation/pages/create_user_page.dart';
 import '../presentation/pages/auth/login_page.dart';
+import '../presentation/pages/auth/forgot_password_page.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   // Создаём роутер ОДИН РАЗ.
@@ -24,10 +26,14 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isInitial = auth.status == AuthStatus.initial;
       final isAuth = auth.status == AuthStatus.authenticated;
       final isOnAuth = loc == '/login';
+      final isOnResetPassword = loc == '/forgot-password';
 
       // Splash сам управляет навигацией — redirect не трогает его
       if (loc == '/') return null;
       if (isInitial) return '/';
+
+      // Страница восстановления пароля доступна без авторизации
+      if (isOnResetPassword) return null;
 
       if (!isAuth && !isOnAuth) {
         AppLogger.nav(loc, '/login');
@@ -54,6 +60,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           AppLogger.nav('router', '/login');
           return const LoginPage();
+        },
+      ),
+      GoRoute(
+        path: '/forgot-password',
+        builder: (context, state) {
+          AppLogger.nav('router', '/forgot-password');
+          return const ForgotPasswordPage();
         },
       ),
       GoRoute(
@@ -89,6 +102,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           AppLogger.nav('router', '/profile');
           return const ProfilePage();
+        },
+      ),
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) {
+          AppLogger.nav('router', '/settings');
+          return const SettingsPage();
         },
       ),
       GoRoute(

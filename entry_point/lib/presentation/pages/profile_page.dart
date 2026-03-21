@@ -22,10 +22,10 @@ class ProfilePage extends ConsumerWidget {
               CircleAvatar(
                 radius: 48,
                 backgroundColor:
-                    Theme.of(context).colorScheme.primaryContainer,
+                    Theme.of(context).colorScheme.primary,
                 child: Text(
                   user?.initials ?? '?',
-                  style: Theme.of(context).textTheme.headlineLarge,
+                  style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white),
                 ),
               ),
               const SizedBox(height: 16),
@@ -45,8 +45,8 @@ class ProfilePage extends ConsumerWidget {
               const SizedBox(height: 8),
               if (auth.isAdmin)
                 Chip(
-                  avatar: const Icon(Icons.admin_panel_settings, size: 18),
-                  label: const Text('Администратор'),
+                  avatar: Icon(Icons.admin_panel_settings, size: 18, color: Theme.of(context).colorScheme.primary),
+                  label: Text('Администратор', style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryContainer)),
                   backgroundColor:
                       Theme.of(context).colorScheme.secondaryContainer,
                 ),

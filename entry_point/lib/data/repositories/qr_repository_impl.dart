@@ -13,10 +13,10 @@ class QrRepositoryImpl implements QrRepository {
   final QrRemoteDataSource _remote;
 
   @override
-  Future<QrToken> generate() async {
-    AppLogger.i(_tag, 'generate()');
+  Future<QrToken> generate({bool forceNew = false}) async {
+    AppLogger.i(_tag, 'generate(forceNew=$forceNew)');
     try {
-      final m = await _remote.generate();
+      final m = await _remote.generate(forceNew: forceNew);
       AppLogger.i(_tag, 'generate() ✅ secondsLeft=${m.secondsLeft}');
       return m.toEntity();
     } catch (e, st) {
