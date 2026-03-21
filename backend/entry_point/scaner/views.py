@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from drf_spectacular.utils import extend_schema, OpenApiResponse
 
-from .models import QRCode, AccessLog
+from .models import QRCode, AccessLog, AttendanceRecord
 from .serializers import QRValidateSerializer
 
 logger = logging.getLogger('scaner')
@@ -69,10 +69,39 @@ class ValidateQRView(GenericAPIView):
         AccessLog.objects.create(qr_code=qr, result='granted', scanned_by=request.user.email)
 
         user = qr.device.user
+        now = timezone.now()
+        today = now.date()
+
+        # Учёт посещаемости: первый скан = вход, второй (если уже есть вход) = выход
+        record, created = AttendanceRecord.objects.get_or_create(
+            user=user,
+            date=today,
+            defaults={'entered_at': now},
+        )
+        if not created and record.exited_at is None:
+            # Уже есть запись входа — фиксируем выход
+            record.exited_at = now
+            record.save(update_fields=['exited_at'])
+            attendance_event = 'exit'
+            logger.info("[ValidateQRView] Зафиксирован ВЫХОД: user_id=%s at=%s", user.id, now)
+        elif not created and record.exited_at is not None:
+            # Повторное посещение: сбрасываем (новый вход поверх завершённой записи)
+            record.entered_at = now
+            record.exited_at = None
+            record.save(update_fields=['entered_at', 'exited_at'])
+            attendance_event = 'entry'
+            logger.info("[ValidateQRView] Зафиксирован повторный ВХОД: user_id=%s at=%s", user.id, now)
+        else:
+            attendance_event = 'entry'
+            logger.info("[ValidateQRView] Зафиксирован ВХОД: user_id=%s at=%s", user.id, now)
+
         logger.info("[ValidateQRView] ДОСТУП РАЗРЕШЁН: qr_id=%s user_id=%s email=%s", qr.id, user.id, user.email)
 
         return Response({
             "result": "granted",
+            "attendance_event": attendance_event,
+            "entered_at": record.entered_at,
+            "exited_at": record.exited_at,
             "user": {
                 "id": user.id,
                 "email": user.email,

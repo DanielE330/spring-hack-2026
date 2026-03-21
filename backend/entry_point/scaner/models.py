@@ -48,6 +48,26 @@ class QRCode(models.Model):
         return f"QR {self.token[:12]}... device={self.device_id} used={self.is_used}"
 
 
+class AttendanceRecord(models.Model):
+    """Фиксирует вход и выход сотрудника из здания.
+    Первый скан QR за день — вход (entered_at).
+    Второй скан QR за тот же день — выход (exited_at).
+    """
+    user = models.ForeignKey(
+        'user.User', on_delete=models.CASCADE, related_name='attendance'
+    )
+    date = models.DateField()  # дата события (по UTC)
+    entered_at = models.DateTimeField(null=True, blank=True)
+    exited_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        unique_together = ('user', 'date')
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"Attendance user={self.user_id} date={self.date} in={self.entered_at} out={self.exited_at}"
+
+
 class AccessLog(models.Model):
     RESULT_CHOICES = [
         ('granted', 'Пропущен'),

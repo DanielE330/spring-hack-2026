@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import QRCode, AccessLog
+from .models import QRCode, AccessLog, AttendanceRecord
 
 
 @admin.register(QRCode)
@@ -20,3 +20,11 @@ class AccessLogAdmin(admin.ModelAdmin):
     list_filter = ('result',)
     search_fields = ('scanned_by', 'qr_code__device__user__email')
     readonly_fields = ('scanned_at',)
+
+
+@admin.register(AttendanceRecord)
+class AttendanceRecordAdmin(admin.ModelAdmin):
+    list_display = ('id', 'user', 'date', 'entered_at', 'exited_at')
+    list_filter = ('date',)
+    search_fields = ('user__email', 'user__name', 'user__surname')
+    readonly_fields = ('entered_at', 'exited_at')
