@@ -45,9 +45,10 @@ class QrPassWidgetProvider : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         for (widgetId in appWidgetIds) {
-            // Сначала показываем «Обновление...» в виде bitmap-заглушки
+            // Сначала показываем «...» пока грузится
             val loadingViews = RemoteViews(context.packageName, R.layout.widget_qr_pass).apply {
-                setImageViewBitmap(R.id.widget_image, WidgetBitmapRenderer.renderStatus("Обновление..."))
+                setTextViewText(R.id.widget_timer_text, "...")
+                setTextColor(R.id.widget_timer_text, 0xFFAAAAAA.toInt())
             }
             appWidgetManager.updateAppWidget(widgetId, loadingViews)
 
@@ -65,28 +66,35 @@ class QrPassWidgetProvider : AppWidgetProvider() {
     ) {
         val views = RemoteViews(context.packageName, R.layout.widget_qr_pass)
 
-        val bitmap = try {
+        // Получаем данные и выставляем текст + цвет таймера
+        try {
             val deviceCode = getDeviceCode(context)
             if (deviceCode.isNullOrEmpty()) {
-                WidgetBitmapRenderer.renderStatus("Войдите в приложение")
+                views.setTextViewText(R.id.widget_timer_text, "Войди")
+                views.setTextColor(R.id.widget_timer_text, 0xFFAAAAAA.toInt())
             } else {
                 val qrData = fetchQrToken(deviceCode)
                 if (qrData != null) {
-                    // Рисуем полный визуал: кольцо + QR + текст таймера
-                    WidgetBitmapRenderer.render(
-                        qrToken = qrData.token,
-                        secondsLeft = qrData.secondsLeft
-                    )
+                    val m = qrData.secondsLeft / 60
+                    val s = qrData.secondsLeft % 60
+                    views.setTextViewText(R.id.widget_timer_text, String.format("%02d:%02d", m, s))
+                    val fraction = qrData.secondsLeft.toFloat() / 300f
+                    val color = when {
+                        fraction > 0.5f -> 0xFF4CAF50.toInt() // зелёный
+                        fraction > 0.2f -> 0xFFFF9800.toInt() // оранжевый
+                        else            -> 0xFFE74C3C.toInt() // красный
+                    }
+                    views.setTextColor(R.id.widget_timer_text, color)
                 } else {
-                    WidgetBitmapRenderer.renderStatus("Ошибка загрузки")
+                    views.setTextViewText(R.id.widget_timer_text, "--:--")
+                    views.setTextColor(R.id.widget_timer_text, 0xFFE74C3C.toInt())
                 }
             }
         } catch (e: Exception) {
             Log.e(TAG, "updateWidget exception", e)
-            WidgetBitmapRenderer.renderStatus("Нет соединения")
+            views.setTextViewText(R.id.widget_timer_text, "--:--")
+            views.setTextColor(R.id.widget_timer_text, 0xFFAAAAAA.toInt())
         }
-
-        views.setImageViewBitmap(R.id.widget_image, bitmap)
 
         // По тапу открываем защищённую Activity
         val tapIntent = Intent(context, QrSecureActivity::class.java).apply {
