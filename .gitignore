@@ -1,2 +1,7 @@
 entry_point/flutter_windows_3.24.0-stable.zip
 *.zip
+
+# Environment secrets
+.env
+.env.*
+!.env.example
