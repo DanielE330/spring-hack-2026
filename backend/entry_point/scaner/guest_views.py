@@ -16,6 +16,7 @@ from .serializers import (
     GuestPassSerializer,
     GuestPassValidateSerializer,
 )
+from rest_framework.exceptions import PermissionDenied
 
 logger = logging.getLogger('scaner')
 
@@ -44,6 +45,14 @@ class GuestPassCreateView(CreateModelMixin, GenericAPIView):
             )
 
         return self.create(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        # Возвращаем полный объект через GuestPassSerializer
+        output = GuestPassSerializer(serializer.instance).data
+        return Response(output, status=status.HTTP_201_CREATED)
 
     def perform_create(self, serializer):
         guest_pass = serializer.save(created_by=self.request.user)
