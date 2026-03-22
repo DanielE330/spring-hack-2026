@@ -168,3 +168,79 @@ class AccessLog(models.Model):
 
     def __str__(self):
         return f"AccessLog [{self.result}] at {self.scanned_at}"
+
+
+# ─── Гостевые (временные) пропуска ──────────────────────────────────────────
+
+class GuestPass(models.Model):
+    """Временный пропуск для гостей, подрядчиков, курьеров."""
+
+    PURPOSE_CHOICES = [
+        ('meeting', 'Встреча'),
+        ('contractor', 'Подрядчик'),
+        ('delivery', 'Доставка/Курьер'),
+        ('temp_employee', 'Временный сотрудник'),
+        ('other', 'Другое'),
+    ]
+
+    STATUS_CHOICES = [
+        ('active', 'Активен'),
+        ('used', 'Использован'),
+        ('expired', 'Истёк'),
+        ('revoked', 'Отменён'),
+    ]
+
+    guest_name = models.CharField(max_length=150, help_text="ФИО гостя")
+    guest_company = models.CharField(max_length=200, blank=True, default='', help_text="Компания/организация гостя")
+    purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES, default='meeting')
+    note = models.TextField(blank=True, default='', help_text="Комментарий к пропуску")
+
+    token = models.CharField(max_length=64, unique=True, editable=False)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='active')
+
+    created_by = models.ForeignKey(
+        'user.User', on_delete=models.CASCADE, related_name='created_guest_passes',
+        help_text="Администратор, создавший пропуск",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    valid_from = models.DateTimeField(help_text="Начало действия")
+    valid_until = models.DateTimeField(help_text="Конец действия")
+
+    used_at = models.DateTimeField(null=True, blank=True, help_text="Когда был предъявлен")
+    revoked_at = models.DateTimeField(null=True, blank=True, help_text="Когда был отменён")
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = uuid.uuid4().hex + uuid.uuid4().hex[:32]
+        super().save(*args, **kwargs)
+        if self._state.adding:
+            logger.info(
+                "[GuestPass.save] Создан: id=%s guest=%s valid=%s–%s by=%s",
+                self.id, self.guest_name, self.valid_from, self.valid_until, self.created_by_id,
+            )
+
+    @property
+    def is_valid(self):
+        """True — если пропуск в статусе active и не истёк по времени."""
+        now = timezone.now()
+        return self.status == 'active' and self.valid_from <= now <= self.valid_until
+
+    @property
+    def is_expired(self):
+        return timezone.now() > self.valid_until
+
+    def revoke(self):
+        self.status = 'revoked'
+        self.revoked_at = timezone.now()
+        self.save(update_fields=['status', 'revoked_at'])
+
+    def mark_used(self):
+        self.status = 'used'
+        self.used_at = timezone.now()
+        self.save(update_fields=['status', 'used_at'])
+
+    def __str__(self):
+        return f"GuestPass [{self.status}] {self.guest_name} {self.valid_from}–{self.valid_until}"

@@ -10,6 +10,9 @@ import '../presentation/pages/devices_page.dart';
 import '../presentation/pages/profile_page.dart';
 import '../presentation/pages/settings_page.dart';
 import '../presentation/pages/create_user_page.dart';
+import '../presentation/pages/admin_page.dart';
+import '../presentation/pages/guest_passes_page.dart';
+import '../presentation/pages/create_guest_pass_page.dart';
 import '../presentation/pages/auth/login_page.dart';
 import '../presentation/pages/auth/forgot_password_page.dart';
 
@@ -43,8 +46,8 @@ final routerProvider = Provider<GoRouter>((ref) {
         AppLogger.nav(loc, '/home');
         return '/home';
       }
-      // Admin guard для сканера и создания пользователя
-      if ((loc == '/scan' || loc == '/create-user') && !auth.isAdmin) {
+      // Admin guard для сканера, страницы администрирования, создания пользователя и гостевых пропусков
+      if ((loc == '/scan' || loc == '/admin' || loc == '/create-user' || loc.startsWith('/guest-passes')) && !auth.isAdmin) {
         AppLogger.nav(loc, '/home');
         return '/home';
       }
@@ -112,10 +115,31 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
       GoRoute(
+        path: '/admin',
+        builder: (context, state) {
+          AppLogger.nav('router', '/admin');
+          return const AdminPage();
+        },
+      ),
+      GoRoute(
         path: '/create-user',
         builder: (context, state) {
           AppLogger.nav('router', '/create-user');
           return const CreateUserPage();
+        },
+      ),
+      GoRoute(
+        path: '/guest-passes',
+        builder: (context, state) {
+          AppLogger.nav('router', '/guest-passes');
+          return const GuestPassesPage();
+        },
+      ),
+      GoRoute(
+        path: '/guest-passes/create',
+        builder: (context, state) {
+          AppLogger.nav('router', '/guest-passes/create');
+          return const CreateGuestPassPage();
         },
       ),
     ],

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import QRCode, AccessLog
+from .models import QRCode, AccessLog, GuestPass
 
 
 class QRGenerateSerializer(serializers.Serializer):
@@ -55,3 +55,41 @@ class AccessLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = AccessLog
         fields = ('id', 'scanned_at', 'result', 'reason', 'scanned_by')
+
+
+# ─── Гостевые пропуска ──────────────────────────────────────────────────────
+
+class GuestPassCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = GuestPass
+        fields = (
+            'guest_name', 'guest_company', 'purpose', 'note',
+            'valid_from', 'valid_until',
+        )
+
+    def validate(self, data):
+        if data['valid_until'] <= data['valid_from']:
+            raise serializers.ValidationError('valid_until должен быть позже valid_from')
+        return data
+
+
+class GuestPassSerializer(serializers.ModelSerializer):
+    created_by_email = serializers.CharField(source='created_by.email', read_only=True)
+    is_valid = serializers.BooleanField(read_only=True)
+    is_expired = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = GuestPass
+        fields = (
+            'id', 'guest_name', 'guest_company', 'purpose', 'note',
+            'token', 'status',
+            'created_by', 'created_by_email', 'created_at',
+            'valid_from', 'valid_until',
+            'used_at', 'revoked_at',
+            'is_valid', 'is_expired',
+        )
+        read_only_fields = ('id', 'token', 'status', 'created_by', 'created_at', 'used_at', 'revoked_at')
+
+
+class GuestPassValidateSerializer(serializers.Serializer):
+    token = serializers.CharField(help_text="Токен гостевого пропуска")

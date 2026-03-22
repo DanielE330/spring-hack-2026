@@ -1,0 +1,22 @@
+import '../entities/guest_pass.dart';
+
+abstract class GuestPassRepository {
+  /// Список всех гостевых пропусков (только admin).
+  Future<List<GuestPass>> list();
+
+  /// Создать гостевой пропуск.
+  Future<GuestPass> create({
+    required String guestName,
+    required String purpose,
+    required DateTime validFrom,
+    required DateTime validUntil,
+    String guestCompany,
+    String note,
+  });
+
+  /// Отменить гостевой пропуск.
+  Future<GuestPass> revoke(int id);
+
+  /// Валидировать токен (при сканировании).
+  Future<Map<String, dynamic>> validate(String token);
+}

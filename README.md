@@ -1,4 +1,80 @@
-# Точка входа — Flutter Application
+# Spring Hack 2026 — Система учёта посещаемости
+
+**Многоуровневая система для учёта посещаемости сотрудников, гостей и подрядчиков.**
+
+- Flutter Web/Мобильное приложение (entry_point): QR-пропуска, гостевые пропуска, админка
+- Django Backend (backend): API, хранение данных, отчёты, гостевые пропуска
+
+---
+
+# Backend (Django)
+
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver 0.0.0.0:8000
+```
+
+---
+
+# Временные пропуска (гости/подрядчики)
+- Создаются администратором в разделе "Администрирование"
+- Можно задать ФИО, компанию, цель, время действия, комментарий
+- QR-код пропуска можно отправить гостю (по email/SMS — опционально)
+- Пропуск можно отозвать досрочно
+
+---
+
+# Деплой Web + Caddy
+
+```bash
+cd entry_point
+flutter build web --release
+rsync -avz --delete build/web/ root@your-server:/var/www/entry_point/
+```
+
+Caddyfile (пример):
+```caddyfile
+http://your-domain.com {
+    handle /auth/* {
+        reverse_proxy localhost:8000
+    }
+    handle /users/* {
+        reverse_proxy localhost:8000
+    }
+    handle /qr/* {
+        reverse_proxy localhost:8000
+    }
+    handle /reports/* {
+        reverse_proxy localhost:8000
+    }
+    handle /admin/* {
+        reverse_proxy localhost:8000
+    }
+    handle /guest-passes/* {
+        reverse_proxy localhost:8000
+    }
+    handle /django-admin/* {
+        reverse_proxy localhost:8000
+    }
+    handle /media/* {
+        reverse_proxy localhost:8000
+    }
+    handle {
+        root * /var/www/entry_point
+        encode gzip
+        try_files {path} /index.html
+        file_server
+    }
+}
+```
+
+---
+
+## Точка входа — Flutter Application
 
 Кросс-платформенное мобильное приложение (Android / iOS) на Flutter.  
 Стек: Flutter, Dio, flutter_riverpod, flutter_secure_storage, go_router.

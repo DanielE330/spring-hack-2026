@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import QRCode, AccessLog, WeeklyRecord, MonthlyRecord, YearlyRecord
+from .models import QRCode, AccessLog, WeeklyRecord, MonthlyRecord, YearlyRecord, GuestPass
 
 
 @admin.register(QRCode)
@@ -53,3 +53,11 @@ class YearlyRecordAdmin(admin.ModelAdmin):
     def total_hours(self, obj):
         return obj.total_hours
     total_hours.short_description = 'Часы'
+
+
+@admin.register(GuestPass)
+class GuestPassAdmin(admin.ModelAdmin):
+    list_display = ('id', 'guest_name', 'guest_company', 'purpose', 'status', 'valid_from', 'valid_until', 'created_by')
+    list_filter = ('status', 'purpose')
+    search_fields = ('guest_name', 'guest_company', 'token')
+    readonly_fields = ('token', 'created_at', 'used_at', 'revoked_at')

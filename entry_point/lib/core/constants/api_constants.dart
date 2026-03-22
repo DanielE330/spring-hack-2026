@@ -32,4 +32,10 @@ class ApiConstants {
 
   // Endpoints — Reports
   static const String reportsAttendance = '/reports/attendance/';
+
+  // Endpoints — Guest Passes
+  static const String guestPasses         = '/guest-passes/';
+  static const String guestPassesCreate   = '/guest-passes/create/';
+  static const String guestPassesValidate = '/guest-passes/validate/';
+  static String guestPassRevoke(int id)   => '/guest-passes/$id/revoke/';
 }

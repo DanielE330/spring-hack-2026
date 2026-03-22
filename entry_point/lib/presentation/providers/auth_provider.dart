@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/api_client.dart';
 import '../../core/storage/secure_storage.dart';
@@ -107,7 +107,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
     AppLogger.i(_tag, 'login() email=$email');
     state = state.copyWith(isLoading: true, clearError: true);
     try {
-      final deviceName = Platform.operatingSystem;
+      final deviceName = kIsWeb
+          ? 'web'
+          : defaultTargetPlatform.toString().replaceAll('TargetPlatform.', '');
       final user = await _login(email: email, password: password, deviceName: deviceName);
       state = state.copyWith(
         status: AuthStatus.authenticated,
