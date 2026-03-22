@@ -34,4 +34,29 @@ class DeviceRepositoryImpl implements DeviceRepository {
       rethrow;
     }
   }
+
+  @override
+  Future<void> adminDeleteDevice(int id) async {
+    AppLogger.w(_tag, 'adminDeleteDevice() id=$id');
+    try {
+      await _remote.adminDeleteDevice(id);
+      AppLogger.i(_tag, 'adminDeleteDevice() ✅');
+    } catch (e, st) {
+      AppLogger.e(_tag, 'adminDeleteDevice() ❌', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<int>> downloadAttendanceReport() async {
+    AppLogger.i(_tag, 'downloadAttendanceReport()');
+    try {
+      final bytes = await _remote.downloadAttendanceReport();
+      AppLogger.i(_tag, 'downloadAttendanceReport() ✅ bytes=${bytes.length}');
+      return bytes;
+    } catch (e, st) {
+      AppLogger.e(_tag, 'downloadAttendanceReport() ❌', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
 }

@@ -14,4 +14,10 @@ abstract interface class AuthRepository {
 
   /// POST /auth/logout/ then clear storage.
   Future<void> logout();
+
+  /// PUT /users/me/avatar/ — upload avatar image, returns new URL
+  Future<String?> uploadAvatar(String filePath);
+
+  /// DELETE /users/me/avatar/ — remove avatar
+  Future<void> deleteAvatar();
 }

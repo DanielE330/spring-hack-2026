@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import '../../core/errors/app_exception.dart';
 import '../../core/storage/secure_storage.dart';
@@ -76,7 +78,16 @@ class ErrorInterceptor extends Interceptor {
   void onError(DioException err, ErrorInterceptorHandler handler) {
     final response = err.response;
     if (response != null) {
-      final data = response.data;
+      // When ResponseType.bytes is used, error body arrives as Uint8List
+      dynamic data = response.data;
+      if (data is Uint8List) {
+        try {
+          data = jsonDecode(utf8.decode(data));
+        } catch (_) {
+          // not JSON — keep as bytes
+        }
+      }
+
       String message = 'Ошибка сервера';
       Map<String, List<String>>? errors;
       if (data is Map<String, dynamic>) {
@@ -95,7 +106,8 @@ class ErrorInterceptor extends Interceptor {
         ' → ${response.statusCode}: $message',
         error: err,
       );
-      handler.reject(
+      // Use handler.next so AuthInterceptor can still process 401s
+      handler.next(
         DioException(
           requestOptions: err.requestOptions,
           response: err.response,

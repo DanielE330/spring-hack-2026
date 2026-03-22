@@ -54,44 +54,59 @@ class QrNotifier extends StateNotifier<QrState> {
 
   final QrRepository _repo;
   Timer? _timer;
+  bool _disposed = false;
 
   static const _ttlSeconds = 300;
 
   Future<void> generate({bool forceNew = false}) async {
+    if (_disposed) return;
     AppLogger.i(_tag, 'generate(forceNew=$forceNew)');
     _timer?.cancel();
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final qr = await _repo.generate(forceNew: forceNew);
+      if (_disposed || !mounted) return;
       // Всегда сбрасываем таймер на 300 сек — QR всегда новый
       state = QrState(qrToken: qr, secondsLeft: _ttlSeconds, isLoading: false);
       _startCountdown();
       AppLogger.i(_tag, 'generate() ✅ secondsLeft=$_ttlSeconds');
     } catch (e, st) {
       AppLogger.e(_tag, 'generate() ❌', error: e, stackTrace: st);
+      if (_disposed || !mounted) return;
       state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
   void _startCountdown() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) {
-        _timer?.cancel();
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_disposed || !mounted) {
+        timer.cancel();
+        _timer = null;
         return;
       }
-      if (state.secondsLeft <= 1) {
-        _timer?.cancel();
-        AppLogger.i(_tag, 'QR expired — auto-regenerating');
-        generate();
-      } else {
-        state = state.copyWith(secondsLeft: state.secondsLeft - 1);
+      try {
+        if (state.secondsLeft <= 1) {
+          timer.cancel();
+          _timer = null;
+          AppLogger.i(_tag, 'QR expired — auto-regenerating');
+          generate();
+        } else {
+          state = state.copyWith(secondsLeft: state.secondsLeft - 1);
+        }
+      } catch (e) {
+        timer.cancel();
+        _timer = null;
+        AppLogger.w(_tag, 'Timer cancelled — widget disposed');
       }
     });
   }
 
   @override
   void dispose() {
+    _disposed = true;
     _timer?.cancel();
+    _timer = null;
     super.dispose();
   }
 }

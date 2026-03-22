@@ -70,6 +70,32 @@ class AuthRemoteDataSource {
     AppLogger.i(_tag, 'logout ✅');
   }
 
+  /// POST /auth/first-admin/
+  Future<Map<String, dynamic>> createFirstAdmin({
+    required String email,
+    required String name,
+    required String surname,
+    String? patronymic,
+    required String password,
+  }) async {
+    AppLogger.i(_tag, 'createFirstAdmin → email=$email');
+    final body = <String, dynamic>{
+      'email': email,
+      'name': name,
+      'surname': surname,
+      'password': password,
+    };
+    if (patronymic != null && patronymic.isNotEmpty) {
+      body['patronymic'] = patronymic;
+    }
+    final resp = await _dio.post<Map<String, dynamic>>(
+      ApiConstants.firstAdmin,
+      data: body,
+    );
+    AppLogger.i(_tag, 'createFirstAdmin ✅');
+    return resp.data!;
+  }
+
   /// POST /auth/password-reset/
   Future<Map<String, dynamic>> requestPasswordReset({required String email}) async {
     AppLogger.i(_tag, 'requestPasswordReset → email=$email');
@@ -79,6 +105,28 @@ class AuthRemoteDataSource {
     );
     AppLogger.i(_tag, 'requestPasswordReset ✅');
     return resp.data!;
+  }
+
+  /// PUT /users/me/avatar/ (multipart)
+  Future<String?> uploadAvatar(String filePath) async {
+    AppLogger.i(_tag, 'uploadAvatar → $filePath');
+    final formData = FormData.fromMap({
+      'avatar': await MultipartFile.fromFile(filePath),
+    });
+    final resp = await _dio.put<Map<String, dynamic>>(
+      ApiConstants.myAvatar,
+      data: formData,
+    );
+    final avatarUrl = resp.data?['avatar'] as String?;
+    AppLogger.i(_tag, 'uploadAvatar ✅ url=$avatarUrl');
+    return avatarUrl;
+  }
+
+  /// DELETE /users/me/avatar/
+  Future<void> deleteAvatar() async {
+    AppLogger.i(_tag, 'deleteAvatar →');
+    await _dio.delete<dynamic>(ApiConstants.myAvatar);
+    AppLogger.i(_tag, 'deleteAvatar ✅');
   }
 }
 

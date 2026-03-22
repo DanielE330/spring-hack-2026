@@ -74,6 +74,33 @@ class DevicesNotifier extends StateNotifier<DevicesState> {
       state = state.copyWith(error: e.toString());
     }
   }
+
+  Future<void> adminDelete(int id) async {
+    AppLogger.w(_tag, 'adminDelete() id=$id');
+    try {
+      await _repo.adminDeleteDevice(id);
+      state = state.copyWith(
+        devices: state.devices.where((d) => d.id != id).toList(),
+      );
+      AppLogger.i(_tag, 'adminDelete() ✅ id=$id');
+    } catch (e, st) {
+      AppLogger.e(_tag, 'adminDelete() ❌', error: e, stackTrace: st);
+      state = state.copyWith(error: e.toString());
+    }
+  }
+
+  Future<List<int>?> downloadReport() async {
+    AppLogger.i(_tag, 'downloadReport()');
+    try {
+      final bytes = await _repo.downloadAttendanceReport();
+      AppLogger.i(_tag, 'downloadReport() ✅ bytes=${bytes.length}');
+      return bytes;
+    } catch (e, st) {
+      AppLogger.e(_tag, 'downloadReport() ❌', error: e, stackTrace: st);
+      state = state.copyWith(error: e.toString());
+      return null;
+    }
+  }
 }
 
 final devicesProvider =

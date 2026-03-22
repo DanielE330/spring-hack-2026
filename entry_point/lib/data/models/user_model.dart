@@ -17,7 +17,7 @@ class UserModel {
         surname:    (json['surname']    as String?) ?? '',
         patronymic: json['patronymic']  as String?,
         email:      (json['email']      as String?) ?? '',
-        avatarUrl:  json['avatar_url']  as String?,
+        avatarUrl:  (json['avatar'] ?? json['avatar_url']) as String?,
         isAdmin:    (json['is_admin']   as bool?)   ?? false,
       );
 

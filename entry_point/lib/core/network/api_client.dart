@@ -24,7 +24,10 @@ class ApiClient {
       _authInterceptor,
       ErrorInterceptor(),
       if (const bool.fromEnvironment('dart.vm.product') == false)
-        PrettyDioLogger(requestBody: true, responseBody: true),
+        PrettyDioLogger(
+          requestBody: true,
+          responseBody: false,
+        ),
     ]);
 
     AppLogger.i(

@@ -1,9 +1,75 @@
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
+import 'package:file_saver/file_saver.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../providers/auth_provider.dart';
+import '../providers/devices_provider.dart';
 import '../widgets/qr_pass_widget.dart';
+
+bool get _isMobile =>
+    !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
+Future<void> _downloadReport(BuildContext context, WidgetRef ref) async {
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.showSnackBar(
+    const SnackBar(content: Text('Загрузка отчёта...')),
+  );
+  try {
+    final bytes = await ref.read(devicesProvider.notifier).downloadReport();
+    if (!context.mounted) return;
+    if (bytes == null || bytes.isEmpty) {
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Не удалось получить отчёт')),
+      );
+      return;
+    }
+    final now = DateTime.now();
+    final filename = 'attendance_${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}.xlsx';
+    final uint8Bytes = Uint8List.fromList(bytes);
+
+    if (_isMobile) {
+      // На мобилке — сохраняем во временную папку и открываем системный шаринг
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/$filename');
+      await file.writeAsBytes(uint8Bytes);
+      if (!context.mounted) return;
+      messenger.hideCurrentSnackBar();
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')],
+          title: 'Отчёт посещаемости',
+        ),
+      );
+    } else {
+      // На десктопе — просто сохраняем файл
+      await FileSaver.instance.saveFile(
+        name: filename,
+        bytes: uint8Bytes,
+        mimeType: MimeType.microsoftExcel,
+      );
+      if (context.mounted) {
+        messenger.hideCurrentSnackBar();
+        messenger.showSnackBar(
+          const SnackBar(content: Text('Отчёт сохранён ✅')),
+        );
+      }
+    }
+  } catch (e) {
+    if (context.mounted) {
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
+        SnackBar(content: Text('Ошибка загрузки: $e')),
+      );
+    }
+  }
+}
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -59,13 +125,18 @@ class HomePage extends ConsumerWidget {
                           radius: 28,
                           backgroundColor:
                               Theme.of(context).colorScheme.primary,
-                          child: Text(
-                            user?.initials ?? '?',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
+                          backgroundImage: user?.avatarUrl != null
+                              ? NetworkImage(user!.avatarUrl!)
+                              : null,
+                          child: user?.avatarUrl == null
+                              ? Text(
+                                  user?.initials ?? '?',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold, color: Colors.white),
+                                )
+                              : null,
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -115,6 +186,14 @@ class HomePage extends ConsumerWidget {
                   subtitle: 'Добавить сотрудника',
                   color: Theme.of(context).colorScheme.secondary,
                   onTap: () => context.push('/create-user'),
+                ),
+                const SizedBox(height: 16),
+                _ActionButton(
+                  icon: Icons.file_download_rounded,
+                  label: 'Выгрузить отчёт',
+                  subtitle: 'Посещаемость (Excel)',
+                  color: Theme.of(context).colorScheme.tertiary,
+                  onTap: () => _downloadReport(context, ref),
                 ),
                 const SizedBox(height: 16),
               ],

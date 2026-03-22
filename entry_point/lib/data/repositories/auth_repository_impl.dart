@@ -81,4 +81,29 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
   // --- end of AuthRepositoryImpl ---
+
+  @override
+  Future<String?> uploadAvatar(String filePath) async {
+    AppLogger.i(_tag, 'uploadAvatar()');
+    try {
+      final url = await _remote.uploadAvatar(filePath);
+      AppLogger.i(_tag, 'uploadAvatar() ✅');
+      return url;
+    } catch (e, st) {
+      AppLogger.e(_tag, 'uploadAvatar() ❌', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> deleteAvatar() async {
+    AppLogger.i(_tag, 'deleteAvatar()');
+    try {
+      await _remote.deleteAvatar();
+      AppLogger.i(_tag, 'deleteAvatar() ✅');
+    } catch (e, st) {
+      AppLogger.e(_tag, 'deleteAvatar() ❌', error: e, stackTrace: st);
+      rethrow;
+    }
+  }
 }
