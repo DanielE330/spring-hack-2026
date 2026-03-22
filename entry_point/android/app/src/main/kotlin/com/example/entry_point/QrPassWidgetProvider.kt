@@ -19,7 +19,7 @@ class QrPassWidgetProvider : AppWidgetProvider() {
 
     companion object {
         private const val PREFS_NAME = "FlutterSecureStorage"
-        private const val KEY_DEVICE_CODE = "VGhlcmUgaXMgbm8gc3Bvb24h_device_code"
+        private const val KEY_DEVICE_CODE = "VGhpcyBpcyB0aGUgcHJlZml4IGZvciBhIHNlY3VyZSBzdG9yYWdlCg_device_code"
         private const val BASE_URL = "http://194.113.106.32"
         private const val QR_GENERATE_URL = "$BASE_URL/qr/generate/"
 
@@ -138,7 +138,7 @@ class QrPassWidgetProvider : AppWidgetProvider() {
             val conn = url.openConnection() as java.net.HttpURLConnection
             conn.requestMethod = "POST"
             conn.setRequestProperty("Content-Type", "application/json")
-            conn.setRequestProperty("Authorization", "Device $deviceCode")
+            conn.setRequestProperty("Authorization", "Token $deviceCode")
             conn.connectTimeout = 10_000
             conn.readTimeout = 10_000
             conn.doOutput = true

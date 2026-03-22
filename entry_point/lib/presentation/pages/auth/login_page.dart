@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../../providers/auth_provider.dart';
 import '../../widgets/app_button.dart';
@@ -59,18 +60,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               children: [
                 const SizedBox(height: 32),
                 Center(
-                  child: Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      borderRadius: BorderRadius.circular(20),
+                  child: SvgPicture.asset( 
+                      'assets/icons/rostelecomatar.svg',
+                      width: 90,
+                      height: 90,
                     ),
-                    child: Image.asset( 
-                      'assets/icons/rostelecomatar.png',
-                      width: 64,
-                      height: 64,
-                    ),
-                  ),
                 ),
                 const SizedBox(height: 24),
                 Text(

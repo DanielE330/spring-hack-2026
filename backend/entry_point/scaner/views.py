@@ -77,53 +77,6 @@ def _finalize_completed_periods(user, today):
 
 
 @extend_schema(
-    summary="Генерация QR-кода",
-    description=(
-        "Создаёт одноразовый QR-код с TTL 5 минут для текущего устройства "
-        "(определяется по Authorization: Token <device_code>). "
-        "Тело запроса не требуется. "
-        "Если у устройства уже есть активный неиспользованный QR — возвращает его. "
-        "Передайте ?force_new=1 чтобы принудительно создать новый."
-    ),
-    request=None,
-    responses={
-        200: OpenApiResponse(description="QR-код", response=QRCodeResponseSerializer),
-        401: OpenApiResponse(description="Не авторизован / устройство не найдено"),
-    },
-    tags=["QR"]
-)
-class GenerateQRView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def post(self, request, *args, **kwargs):
-        device = getattr(request, 'auth', None)
-
-        if not isinstance(device, UserDevice):
-            logger.warning("[GenerateQRView] request.auth не является UserDevice, user_id=%s", request.user.id)
-            return Response({"detail": "Устройство не определено. Авторизуйтесь заново."},
-                            status=status.HTTP_401_UNAUTHORIZED)
-
-        logger.info("[GenerateQRView] user_id=%s device_id=%s", request.user.id, device.id)
-
-        force_new = request.query_params.get('force_new') in ('1', 'true')
-
-        if not force_new:
-            # Ищем активный QR (ещё не использован, не истёк)
-            existing_qr = QRCode.objects.filter(
-                device=device, is_used=False, expires_at__gt=timezone.now()
-            ).order_by('-created_at').first()
-
-            if existing_qr:
-                logger.debug("[GenerateQRView] Возвращаем существующий QR id=%s", existing_qr.id)
-                return Response(QRCodeResponseSerializer(existing_qr).data, status=status.HTTP_200_OK)
-
-        qr = QRCode.objects.create(device=device)
-        logger.info("[GenerateQRView] Создан новый QR id=%s expires_at=%s", qr.id, qr.expires_at)
-
-        return Response(QRCodeResponseSerializer(qr).data, status=status.HTTP_200_OK)
-
-
-@extend_schema(
     summary="Валидация QR-кода (эмуляция СКУД)",
     description=(
         "Принимает токен QR-кода, проверяет: не истёк, не использован, "
@@ -170,10 +123,14 @@ class ValidateQRView(GenericAPIView):
             AccessLog.objects.create(qr_code=qr, result='denied', reason=deny_reason, scanned_by=request.user.email)
             return Response({"detail": deny_reason}, status=status.HTTP_403_FORBIDDEN)
 
-        # Атомарно помечаем использованным
-        qr.is_used = True
-        qr.used_at = timezone.now()
-        qr.save(update_fields=['is_used', 'used_at'])
+        # Атомарно помечаем использованным (защита от параллельных запросов)
+        updated = QRCode.objects.filter(id=qr.id, is_used=False).update(
+            is_used=True, used_at=timezone.now()
+        )
+        if not updated:
+            AccessLog.objects.create(qr_code=qr, result='denied', reason='QR-код уже использован (race)', scanned_by=request.user.email)
+            return Response({"detail": "QR-код уже использован"}, status=status.HTTP_403_FORBIDDEN)
+        qr.refresh_from_db()
 
         AccessLog.objects.create(qr_code=qr, result='granted', scanned_by=request.user.email)
 

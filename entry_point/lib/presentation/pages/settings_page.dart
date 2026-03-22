@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../providers/biometric_provider.dart';
 import '../providers/theme_provider.dart';
 
 class SettingsPage extends ConsumerWidget {
@@ -10,7 +9,6 @@ class SettingsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final themeMode = ref.watch(themeModeProvider);
-    final bio = ref.watch(biometricProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Настройки')),
@@ -48,62 +46,6 @@ class SettingsPage extends ConsumerWidget {
             onTap: () =>
                 ref.read(themeModeProvider.notifier).setMode(ThemeMode.system),
           ),
-
-          const Divider(height: 32),
-
-          Padding(
-            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-            child: Text(
-              'Безопасность',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-          ),
-          SwitchListTile(
-            secondary: Icon(
-              bio.hasFace ? Icons.face_rounded : Icons.fingerprint_rounded,
-              color: bio.isEnabled
-                  ? Theme.of(context).colorScheme.primary
-                  : Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-            title: const Text('Дополнительная защита'),
-            subtitle: Text(
-              bio.isAvailable
-                  ? bio.isEnabled
-                      ? '${bio.biometricLabel} включён'
-                      : 'Вход через ${bio.biometricLabel}'
-                  : 'Биометрия недоступна на устройстве',
-            ),
-            value: bio.isEnabled,
-            onChanged: bio.isAvailable
-                ? (value) async {
-                    final ok = await ref
-                        .read(biometricProvider.notifier)
-                        .toggle(value);
-                    if (!ok && context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content:
-                              Text('Не удалось включить биометрическую защиту'),
-                        ),
-                      );
-                    }
-                  }
-                : null,
-          ),
-          if (bio.isAvailable)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                'При включении для входа в приложение потребуется '
-                'подтверждение через Face ID или отпечаток пальца.',
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
-              ),
-            ),
 
           const Divider(height: 32),
 

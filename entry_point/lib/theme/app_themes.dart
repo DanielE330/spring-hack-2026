@@ -47,10 +47,10 @@ class DarkTheme {
         fillColor: RtColors.darkCard,
         labelStyle: const TextStyle(color: RtColors.darkTextSecondary),
         hintStyle: const TextStyle(color: RtColors.darkTextHint),
-        floatingLabelStyle: const TextStyle(color: RtColors.orange),
+        floatingLabelStyle: const TextStyle(color: RtColors.purple),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: RtColors.orange, width: 2),
+          borderSide: const BorderSide(color: RtColors.purple, width: 2),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -207,10 +207,10 @@ class LightTheme {
         fillColor: RtColors.lightSurface,
         labelStyle: const TextStyle(color: RtColors.lightTextSecondary),
         hintStyle: const TextStyle(color: RtColors.lightTextHint),
-        floatingLabelStyle: const TextStyle(color: RtColors.orange),
+        floatingLabelStyle: const TextStyle(color: RtColors.purple),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: RtColors.orange, width: 2),
+          borderSide: const BorderSide(color: RtColors.purple, width: 2),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),

@@ -184,14 +184,14 @@ class QrSecureActivity : AppCompatActivity() {
                 androidx.security.crypto.EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
             val deviceCode = prefs.getString(
-                "VGhlcmUgaXMgbm8gc3Bvb24h_device_code", null
+                "VGhpcyBpcyB0aGUgcHJlZml4IGZvciBhIHNlY3VyZSBzdG9yYWdlCg_device_code", null
             ) ?: return null
 
             val url = java.net.URL("http://194.113.106.32/qr/generate/")
             val conn = url.openConnection() as java.net.HttpURLConnection
             conn.requestMethod = "POST"
             conn.setRequestProperty("Content-Type", "application/json")
-            conn.setRequestProperty("Authorization", "Device $deviceCode")
+            conn.setRequestProperty("Authorization", "Token $deviceCode")
             conn.connectTimeout = 10_000
             conn.readTimeout = 10_000
             conn.doOutput = true

@@ -75,6 +75,10 @@ class QrNotifier extends StateNotifier<QrState> {
 
   void _startCountdown() {
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) {
+        _timer?.cancel();
+        return;
+      }
       if (state.secondsLeft <= 1) {
         _timer?.cancel();
         AppLogger.i(_tag, 'QR expired — auto-regenerating');

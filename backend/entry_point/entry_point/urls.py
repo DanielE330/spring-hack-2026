@@ -23,7 +23,6 @@ from .frontend_views import serve_password_reset
 urlpatterns = [
     path('django-admin/', admin.site.urls),
     path('password-reset/<path:resource>', serve_password_reset),
-    path('password-reset/confirm', serve_password_reset),
     path('password-reset/', serve_password_reset),
     path('', include('user.urls')),
     path('', include('scaner.urls')),

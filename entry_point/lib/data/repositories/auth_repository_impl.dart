@@ -1,5 +1,6 @@
 import '../../core/storage/secure_storage.dart';
 import '../../core/utils/app_logger.dart';
+import '../../core/utils/widget_updater.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../models/user_model.dart';
@@ -41,6 +42,10 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = UserModel.fromJson(userMap).toEntity();
 
       AppLogger.i(_tag, 'login() ✅ userId=${user.id} isAdmin=${user.isAdmin}');
+
+      // Обновляем виджет на рабочем столе, чтобы он подхватил device_code
+      updateHomeWidget();
+
       return user;
     } catch (e, st) {
       AppLogger.e(_tag, 'login() ❌', error: e, stackTrace: st);
@@ -72,6 +77,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } finally {
       await _storage.clearAll();
       AppLogger.i(_tag, 'logout() ✅ storage cleared');
+      updateHomeWidget();
     }
   }
   // --- end of AuthRepositoryImpl ---

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
+import '../widgets/qr_pass_widget.dart';
 
 class HomePage extends ConsumerWidget {
   const HomePage({super.key});
@@ -41,9 +42,10 @@ class HomePage extends ConsumerWidget {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
               // Greeting card — tap to open profile
               InkWell(
                 onTap: () => context.push('/profile'),
@@ -93,14 +95,8 @@ class HomePage extends ConsumerWidget {
               ),
               const SizedBox(height: 32),
 
-              // Main action
-              _ActionButton(
-                icon: Icons.qr_code_rounded,
-                label: 'Сгенерировать пропуск',
-                subtitle: 'Ваш QR-пропуск',
-                color: Theme.of(context).colorScheme.primary,
-                onTap: () => context.push('/qr'),
-              ),
+              // QR-пропуск с круговым таймером
+              const QrPassWidget(),
               const SizedBox(height: 16),
 
               // Admin-only actions
@@ -122,7 +118,8 @@ class HomePage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
               ],
-            ],
+              ],
+            ),
           ),
         ),
       ),

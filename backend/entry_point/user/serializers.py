@@ -23,11 +23,6 @@ class AvatarSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError('Допустимые форматы: JPEG, PNG, WebP.')
         return value
 
-    def create(self, validated_data):
-        password = validated_data.pop('password')
-        user = User.objects.create_user(password=password, **validated_data)
-        return user
-
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
