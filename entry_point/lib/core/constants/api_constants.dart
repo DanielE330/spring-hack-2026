@@ -20,15 +20,15 @@ class ApiConstants {
   static const String myDevices = '/users/me/devices/';
   static String deviceById(String id) => '/users/me/devices/$id/';
 
+  // Endpoints — SSE (real-time events)
+  static const String userEvents = '/users/me/events/';
+
   // Endpoints — Admin
   static String adminDeviceById(String id) => '/admin/devices/$id/';
 
   // Endpoints — QR
   static const String qrGenerate = '/qr/generate/';
   static const String qrValidate = '/qr/validate/';
-
-  // Endpoints — SSE (real-time events)
-  static const String userEvents = '/users/me/events/';
 
   // Endpoints — Reports
   static const String reportsAttendance = '/reports/attendance/';

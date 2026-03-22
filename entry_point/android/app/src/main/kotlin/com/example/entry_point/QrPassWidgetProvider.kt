@@ -6,8 +6,8 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.widget.RemoteViews
-import java.util.concurrent.Executors
 
 /**
  * Android Home Screen Widget — показывает QR-пропуск.
@@ -18,10 +18,14 @@ import java.util.concurrent.Executors
 class QrPassWidgetProvider : AppWidgetProvider() {
 
     companion object {
+        private const val TAG = "QrPassWidget"
         private const val PREFS_NAME = "FlutterSecureStorage"
         private const val KEY_DEVICE_CODE = "VGhpcyBpcyB0aGUgcHJlZml4IGZvciBhIHNlY3VyZSBzdG9yYWdlCg_device_code"
         private const val BASE_URL = "http://194.113.106.32"
         private const val QR_GENERATE_URL = "$BASE_URL/qr/generate/"
+
+        // Executor вынесен в companion object, чтобы не создавать новый при каждом обновлении виджета
+        private val executor = java.util.concurrent.Executors.newSingleThreadExecutor()
 
         /** Принудительное обновление всех виджетов извне */
         fun forceUpdate(context: Context) {
@@ -35,17 +39,15 @@ class QrPassWidgetProvider : AppWidgetProvider() {
         }
     }
 
-    private val executor = Executors.newSingleThreadExecutor()
-
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray
     ) {
         for (widgetId in appWidgetIds) {
-            // Сначала показываем «Обновление...»
+            // Сначала показываем «Обновление...» в виде bitmap-заглушки
             val loadingViews = RemoteViews(context.packageName, R.layout.widget_qr_pass).apply {
-                setTextViewText(R.id.widget_timer_text, "Обновление...")
+                setImageViewBitmap(R.id.widget_image, WidgetBitmapRenderer.renderStatus("Обновление..."))
             }
             appWidgetManager.updateAppWidget(widgetId, loadingViews)
 
@@ -63,37 +65,28 @@ class QrPassWidgetProvider : AppWidgetProvider() {
     ) {
         val views = RemoteViews(context.packageName, R.layout.widget_qr_pass)
 
-        try {
-            // Получаем device_code из EncryptedSharedPreferences
+        val bitmap = try {
             val deviceCode = getDeviceCode(context)
             if (deviceCode.isNullOrEmpty()) {
-                views.setTextViewText(R.id.widget_timer_text, "Войдите в приложение")
-                views.setTextViewText(R.id.widget_status_text, "")
-                appWidgetManager.updateAppWidget(widgetId, views)
-                return
-            }
-
-            // Запрос на генерацию QR
-            val qrData = fetchQrToken(deviceCode)
-            if (qrData != null) {
-                val bitmap = QrBitmapGenerator.generate(qrData.token, 512)
-                views.setImageViewBitmap(R.id.widget_qr_image, bitmap)
-
-                val minutes = qrData.secondsLeft / 60
-                val seconds = qrData.secondsLeft % 60
-                views.setTextViewText(
-                    R.id.widget_timer_text,
-                    String.format("Действует %02d:%02d", minutes, seconds)
-                )
-                views.setTextViewText(R.id.widget_status_text, "Нажмите для просмотра")
+                WidgetBitmapRenderer.renderStatus("Войдите в приложение")
             } else {
-                views.setTextViewText(R.id.widget_timer_text, "Ошибка загрузки")
-                views.setTextViewText(R.id.widget_status_text, "Нажмите для повтора")
+                val qrData = fetchQrToken(deviceCode)
+                if (qrData != null) {
+                    // Рисуем полный визуал: кольцо + QR + текст таймера
+                    WidgetBitmapRenderer.render(
+                        qrToken = qrData.token,
+                        secondsLeft = qrData.secondsLeft
+                    )
+                } else {
+                    WidgetBitmapRenderer.renderStatus("Ошибка загрузки")
+                }
             }
         } catch (e: Exception) {
-            views.setTextViewText(R.id.widget_timer_text, "Нет соединения")
-            views.setTextViewText(R.id.widget_status_text, "Нажмите для повтора")
+            Log.e(TAG, "updateWidget exception", e)
+            WidgetBitmapRenderer.renderStatus("Нет соединения")
         }
+
+        views.setImageViewBitmap(R.id.widget_image, bitmap)
 
         // По тапу открываем защищённую Activity
         val tapIntent = Intent(context, QrSecureActivity::class.java).apply {
@@ -110,21 +103,28 @@ class QrPassWidgetProvider : AppWidgetProvider() {
 
     /**
      * Получение device_code из EncryptedSharedPreferences Flutter Secure Storage.
+     * Использует applicationContext для надёжности.
      */
     private fun getDeviceCode(context: Context): String? {
         return try {
-            val masterKey = androidx.security.crypto.MasterKey.Builder(context)
+            val appCtx = context.applicationContext
+            val masterKey = androidx.security.crypto.MasterKey.Builder(appCtx)
                 .setKeyScheme(androidx.security.crypto.MasterKey.KeyScheme.AES256_GCM)
                 .build()
             val prefs = androidx.security.crypto.EncryptedSharedPreferences.create(
-                context,
+                appCtx,
                 PREFS_NAME,
                 masterKey,
                 androidx.security.crypto.EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
                 androidx.security.crypto.EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
             )
-            prefs.getString(KEY_DEVICE_CODE, null)
+            val code = prefs.getString(KEY_DEVICE_CODE, null)
+            if (code.isNullOrEmpty()) {
+                Log.w(TAG, "device_code отсутствует — пользователь не авторизован")
+            }
+            code
         } catch (e: Exception) {
+            Log.e(TAG, "Ошибка чтения EncryptedSharedPreferences", e)
             null
         }
     }
@@ -146,13 +146,17 @@ class QrPassWidgetProvider : AppWidgetProvider() {
             val body = """{"force_new": true}"""
             conn.outputStream.use { it.write(body.toByteArray()) }
 
-            if (conn.responseCode == 200) {
+            val code = conn.responseCode
+            Log.d(TAG, "qr/generate/ → HTTP $code")
+            if (code == 200) {
                 val response = conn.inputStream.bufferedReader().readText()
                 parseQrResponse(response)
             } else {
+                Log.e(TAG, "Сервер вернул $code")
                 null
             }
         } catch (e: Exception) {
+            Log.e(TAG, "Ошибка HTTP-запроса", e)
             null
         }
     }
