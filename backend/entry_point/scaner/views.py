@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import date, timedelta
 
@@ -147,6 +148,13 @@ class ValidateQRView(GenericAPIView):
             attendance_event = 'entry'
             logger.info("[ValidateQRView] Зафиксирован ВХОД: user_id=%s at=%s", user.id, now)
 
+            # Notify user's app in real-time via Redis Pub/Sub → SSE
+            _redis.publish(f'user_events:{user.id}', json.dumps({
+                'event': 'qr_scanned',
+                'attendance_event': 'entry',
+                'entered_at': now.isoformat(),
+            }))
+
             return Response({
                 "result": "granted",
                 "attendance_event": attendance_event,
@@ -195,6 +203,15 @@ class ValidateQRView(GenericAPIView):
         _finalize_completed_periods(user, today)
 
         logger.info("[ValidateQRView] ДОСТУП РАЗРЕШЁН: qr_id=%s user_id=%s email=%s", qr.id, user.id, user.email)
+
+        # Notify user's app in real-time via Redis Pub/Sub → SSE
+        _redis.publish(f'user_events:{user.id}', json.dumps({
+            'event': 'qr_scanned',
+            'attendance_event': 'exit',
+            'entered_at': entered_at.isoformat(),
+            'exited_at': now.isoformat(),
+            'worked_seconds': worked_seconds,
+        }))
 
         return Response({
             "result": "granted",

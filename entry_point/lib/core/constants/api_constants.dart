@@ -27,6 +27,9 @@ class ApiConstants {
   static const String qrGenerate = '/qr/generate/';
   static const String qrValidate = '/qr/validate/';
 
+  // Endpoints — SSE (real-time events)
+  static const String userEvents = '/users/me/events/';
+
   // Endpoints — Reports
   static const String reportsAttendance = '/reports/attendance/';
 }

@@ -3,9 +3,12 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../core/network/sse_service.dart';
 import '../../core/utils/brightness_helper.dart';
 import '../../core/utils/screen_protection.dart';
+import '../../core/utils/snackbar_utils.dart';
 import '../providers/brightness_provider.dart';
 import '../providers/qr_provider.dart';
 
@@ -65,6 +68,25 @@ class _QrPassWidgetState extends ConsumerState<QrPassWidget> {
     final isDark = theme.brightness == Brightness.dark;
     final containerBg = isDark ? primary.withAlpha(30) : primary.withAlpha(18);
     final borderClr = primary.withAlpha(isDark ? 60 : 50);
+
+    // ── Listen to real-time attendance events via SSE ────────────────
+    ref.listen<AsyncValue<AttendanceEvent>>(attendanceEventProvider,
+        (prev, next) {
+      next.whenData((event) {
+        HapticFeedback.heavyImpact();
+        // Auto-regenerate QR (the old one was just used)
+        ref.read(qrProvider.notifier).generate(forceNew: true);
+        // Show notification
+        if (!context.mounted) return;
+        if (event.isEntry) {
+          final time = _formatIso(event.enteredAt);
+          showSuccessSnack(context, 'Вход зафиксирован в $time');
+        } else {
+          final worked = _formatWorkedSeconds(event.workedSeconds);
+          showSuccessSnack(context, 'Выход зафиксирован. Отработано: $worked');
+        }
+      });
+    });
 
     return Container(
       width: double.infinity,
@@ -318,4 +340,24 @@ class _ErrorCard extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────────────
+
+String _formatIso(String? iso) {
+  if (iso == null) return '—';
+  try {
+    final dt = DateTime.parse(iso).toLocal();
+    return DateFormat('HH:mm').format(dt);
+  } catch (_) {
+    return '—';
+  }
+}
+
+String _formatWorkedSeconds(int? seconds) {
+  if (seconds == null || seconds <= 0) return '—';
+  final h = seconds ~/ 3600;
+  final m = (seconds % 3600) ~/ 60;
+  if (h > 0) return '${h}ч ${m}мин';
+  return '${m}мин';
 }
