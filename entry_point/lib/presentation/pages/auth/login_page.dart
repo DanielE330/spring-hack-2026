@@ -6,6 +6,7 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_input.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/utils/snackbar_utils.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -41,13 +42,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
 
-    if (auth.error != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(auth.error!), backgroundColor: const Color(0xFFE74C3C)),
-        );
-      });
-    }
+    // Show error via themed SnackBar (fires only on change)
+    ref.listen<AuthState>(authProvider, (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        showErrorSnack(context, next.error!);
+      }
+    });
 
     return Scaffold(
       body: SafeArea(

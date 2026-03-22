@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import '../../core/utils/snackbar_utils.dart';
 import '../providers/devices_provider.dart';
+import '../widgets/states.dart';
 
 class DevicesPage extends ConsumerStatefulWidget {
   const DevicesPage({super.key});
@@ -48,6 +50,13 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(devicesProvider);
 
+    // Show error SnackBar when devices are already loaded but a delete fails etc.
+    ref.listen<DevicesState>(devicesProvider, (prev, next) {
+      if (next.error != null && next.error != prev?.error && next.devices.isNotEmpty) {
+        showErrorSnack(context, next.error!);
+      }
+    });
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Мои устройства'),
@@ -69,20 +78,9 @@ class _DevicesPageState extends ConsumerState<DevicesPage> {
       return const Center(child: CircularProgressIndicator());
     }
     if (state.error != null && state.devices.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: Color(0xFFE74C3C)),
-            const SizedBox(height: 12),
-            Text(state.error!),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: ref.read(devicesProvider.notifier).load,
-              child: const Text('Повторить'),
-            ),
-          ],
-        ),
+      return ErrorDisplay(
+        message: state.error!,
+        onRetry: ref.read(devicesProvider.notifier).load,
       );
     }
     if (state.devices.isEmpty) {

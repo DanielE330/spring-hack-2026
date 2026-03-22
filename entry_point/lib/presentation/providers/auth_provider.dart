@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/network/api_client.dart';
 import '../../core/storage/secure_storage.dart';
 import '../../core/utils/app_logger.dart';
+import '../../core/utils/error_helpers.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../data/sources/auth_remote_data_source.dart';
 import '../../domain/entities/user.dart';
@@ -118,7 +119,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     } catch (e, st) {
       AppLogger.e(_tag, 'login() ❌', error: e, stackTrace: st);
       state = state.copyWith(
-        error: e.toString(),
+        error: extractErrorMessage(e),
         isLoading: false,
         status: AuthStatus.unauthenticated,
       );

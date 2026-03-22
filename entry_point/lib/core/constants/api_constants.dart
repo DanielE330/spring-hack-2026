@@ -11,7 +11,6 @@ class ApiConstants {
   // Endpoints — Auth
   static const String login           = '/auth/login/';
   static const String logout          = '/auth/logout/';
-  static const String firstAdmin      = '/auth/first-admin/';
   static const String createUser      = '/auth/create-user/';
   static const String passwordReset   = '/auth/password-reset/';
 
@@ -31,4 +30,3 @@ class ApiConstants {
   // Endpoints — Reports
   static const String reportsAttendance = '/reports/attendance/';
 }
-  

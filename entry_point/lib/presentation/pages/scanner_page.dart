@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import '../providers/qr_provider.dart';
 
@@ -71,7 +72,7 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
     await ref.read(scannerProvider.notifier).validate(token);
 
     _dismissTimer?.cancel();
-    _dismissTimer = Timer(const Duration(seconds: 3), () {
+    _dismissTimer = Timer(const Duration(seconds: 5), () {
       if (mounted) _resetScan();
     });
   }
@@ -229,6 +230,186 @@ class _ScannerPageState extends ConsumerState<ScannerPage> {
   }
 }
 
+// Форматирование отработанного времени
+String _formatWorked(int seconds) {
+  final h = seconds ~/ 3600;
+  final m = (seconds % 3600) ~/ 60;
+  if (h > 0) return '${h}ч ${m}мин';
+  return '${m}мин';
+}
+
+String _formatTime(DateTime? dt) {
+  if (dt == null) return '';
+  return DateFormat('HH:mm').format(dt.toLocal());
+}
+
+// Виджет информации о пользователе (общий для обоих лейаутов)
+class _UserInfoContent extends StatelessWidget {
+  const _UserInfoContent({
+    required this.result,
+    required this.textColor,
+    required this.subtextColor,
+    required this.iconBgColor,
+    required this.accentColor,
+    this.avatarRadius = 36,
+  });
+
+  final ValidateResult result;
+  final Color textColor;
+  final Color subtextColor;
+  final Color iconBgColor;
+  final Color accentColor;
+  final double avatarRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    final user = result.user;
+    final isEntry = result.isEntry;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Статус вход/выход
+        if (result.attendanceEvent != null) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: iconBgColor,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  isEntry ? Icons.login_rounded : Icons.logout_rounded,
+                  color: accentColor,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  isEntry ? 'ВХОД' : 'ВЫХОД',
+                  style: TextStyle(
+                    color: accentColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+        ],
+
+        // Аватар
+        if (user != null) ...[
+          CircleAvatar(
+            radius: avatarRadius,
+            backgroundColor: iconBgColor,
+            backgroundImage: user.avatarUrl != null
+                ? NetworkImage(user.avatarUrl!)
+                : null,
+            child: user.avatarUrl == null
+                ? Text(
+                    user.initials,
+                    style: TextStyle(
+                      color: accentColor,
+                      fontSize: avatarRadius * 0.7,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  )
+                : null,
+          ),
+          const SizedBox(height: 12),
+
+          // ФИО
+          Text(
+            user.fullName,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: textColor,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+
+          // Email
+          Text(
+            user.email,
+            style: TextStyle(color: subtextColor, fontSize: 14),
+          ),
+          const SizedBox(height: 12),
+        ],
+
+        // Время входа/выхода
+        if (result.enteredAt != null)
+          _InfoChip(
+            icon: Icons.access_time_rounded,
+            label: isEntry
+                ? 'Время входа: ${_formatTime(result.enteredAt)}'
+                : 'Вошёл в ${_formatTime(result.enteredAt)}',
+            textColor: subtextColor,
+            iconColor: accentColor,
+          ),
+        if (result.exitedAt != null)
+          _InfoChip(
+            icon: Icons.access_time_rounded,
+            label: 'Вышел в ${_formatTime(result.exitedAt)}',
+            textColor: subtextColor,
+            iconColor: accentColor,
+          ),
+        if (result.workedSeconds != null && result.workedSeconds! > 0)
+          _InfoChip(
+            icon: Icons.timer_outlined,
+            label: 'Отработано: ${_formatWorked(result.workedSeconds!)}',
+            textColor: subtextColor,
+            iconColor: accentColor,
+          ),
+
+        // Доп. деталь (ошибка и т.п.)
+        if (result.detail != null && user == null) ...[
+          const SizedBox(height: 8),
+          Text(
+            result.detail!,
+            textAlign: TextAlign.center,
+            style: TextStyle(color: subtextColor),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+class _InfoChip extends StatelessWidget {
+  const _InfoChip({
+    required this.icon,
+    required this.label,
+    required this.textColor,
+    required this.iconColor,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color textColor;
+  final Color iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: iconColor),
+          const SizedBox(width: 6),
+          Text(label, style: TextStyle(color: textColor, fontSize: 13)),
+        ],
+      ),
+    );
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // Виджет результата — Desktop / Web (карточка)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -241,41 +422,44 @@ class _DesktopResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final granted = result.isGranted;
+    final bg = granted ? const Color(0xFFE8F8EE) : const Color(0xFFFDE8E8);
+    final accent = granted ? const Color(0xFF2ECC71) : const Color(0xFFE74C3C);
+    final text = granted ? const Color(0xFF1A6B3C) : const Color(0xFF9B1C1C);
+    final subtext = granted ? const Color(0xFF3D7A55) : const Color(0xFF8A3030);
+    final iconBg = granted ? const Color(0xFFC8EDDA) : const Color(0xFFF8D0D0);
 
     return Card(
-      color: granted ? const Color(0xFFE8F8EE) : const Color(0xFFFDE8E8),
+      color: bg,
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
               granted ? Icons.check_circle_rounded : Icons.cancel_rounded,
-              color: granted ? const Color(0xFF2ECC71) : const Color(0xFFE74C3C),
-              size: 56,
+              color: accent,
+              size: 48,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               granted ? 'Доступ разрешён' : 'Доступ запрещён',
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: granted ? const Color(0xFF1A6B3C) : const Color(0xFF9B1C1C),
+                color: text,
               ),
             ),
-            if (result.user != null) ...[
-              const SizedBox(height: 8),
-              Text(result.user!.fullName,
-                  style: TextStyle(fontSize: 16, color: granted ? const Color(0xFF1A5C32) : const Color(0xFF7A1A1A))),
-            ],
-            if (result.detail != null) ...[
-              const SizedBox(height: 8),
-              Text(result.detail!,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: granted ? const Color(0xFF3D7A55) : const Color(0xFF8A3030))),
-            ],
+            const SizedBox(height: 16),
+            _UserInfoContent(
+              result: result,
+              textColor: text,
+              subtextColor: subtext,
+              iconBgColor: iconBg,
+              accentColor: accent,
+              avatarRadius: 32,
+            ),
             const SizedBox(height: 16),
             TextButton(
               onPressed: onDismiss,
@@ -300,55 +484,52 @@ class _ResultOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final granted = result.isGranted;
-    final bgColor =
-        granted ? const Color(0xFF2ECC71).withAlpha(220) : const Color(0xFFE74C3C).withAlpha(220);
+    final bgColor = granted
+        ? const Color(0xFF2ECC71).withAlpha(230)
+        : const Color(0xFFE74C3C).withAlpha(230);
 
     return GestureDetector(
       onTap: onDismiss,
       child: ColoredBox(
         color: bgColor,
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  granted ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                  color: Colors.white,
-                  size: 96,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  granted ? 'Доступ разрешён' : 'Доступ запрещён',
-                  style: const TextStyle(
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    granted ? Icons.check_circle_rounded : Icons.cancel_rounded,
                     color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    size: 72,
                   ),
-                ),
-                if (result.user != null) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
-                    result.user!.fullName,
-                    style: const TextStyle(color: Colors.white70, fontSize: 18),
+                    granted ? 'Доступ разрешён' : 'Доступ запрещён',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _UserInfoContent(
+                    result: result,
+                    textColor: Colors.white,
+                    subtextColor: Colors.white70,
+                    iconBgColor: Colors.white.withAlpha(40),
+                    accentColor: Colors.white,
+                    avatarRadius: 40,
+                  ),
+                  const SizedBox(height: 24),
+                  TextButton(
+                    onPressed: onDismiss,
+                    child: const Text('Закрыть',
+                        style: TextStyle(color: Colors.white, fontSize: 16)),
                   ),
                 ],
-                if (result.detail != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    result.detail!,
-                    style: const TextStyle(color: Colors.white70),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-                const SizedBox(height: 24),
-                TextButton(
-                  onPressed: onDismiss,
-                  child:
-                      const Text('Закрыть', style: TextStyle(color: Colors.white)),
-                ),
-              ],
+              ),
             ),
           ),
         ),

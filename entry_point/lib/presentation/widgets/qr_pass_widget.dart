@@ -289,17 +289,31 @@ class _ErrorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SizedBox(
       height: 180,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.broken_image_outlined,
-              size: 48, color: Color(0xFFE74C3C)),
-          const SizedBox(height: 8),
-          Text(error, textAlign: TextAlign.center),
+          Icon(Icons.cloud_off_rounded,
+              size: 48, color: theme.colorScheme.error),
           const SizedBox(height: 12),
-          ElevatedButton(onPressed: onRetry, child: const Text('Повторить')),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              error,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: const Text('Повторить'),
+          ),
         ],
       ),
     );

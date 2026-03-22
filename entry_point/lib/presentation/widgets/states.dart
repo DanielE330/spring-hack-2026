@@ -36,28 +36,39 @@ class ErrorDisplay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 48,
-              color: Theme.of(context).colorScheme.error,
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.error.withAlpha(20),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.cloud_off_rounded,
+                size: 48,
+                color: theme.colorScheme.error,
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 20),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+                height: 1.4,
+              ),
             ),
             if (onRetry != null) ...[
-              const SizedBox(height: 16),
-              TextButton.icon(
+              const SizedBox(height: 24),
+              FilledButton.icon(
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh),
+                icon: const Icon(Icons.refresh_rounded, size: 18),
                 label: const Text('Повторить'),
               ),
             ],

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/app_logger.dart';
+import '../../core/utils/error_helpers.dart';
 import '../../data/sources/auth_remote_data_source.dart';
 import 'auth_provider.dart';
 
@@ -66,7 +67,7 @@ class CreateUserNotifier extends StateNotifier<CreateUserState> {
       AppLogger.e(_tag, 'createUser() ❌', error: e, stackTrace: st);
       state = state.copyWith(
         isLoading: false,
-        error: e.toString(),
+        error: extractErrorMessage(e),
       );
       return false;
     }

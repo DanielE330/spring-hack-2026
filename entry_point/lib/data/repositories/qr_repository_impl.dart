@@ -26,7 +26,15 @@ class QrRepositoryImpl implements QrRepository {
   }
 
   @override
-  Future<({String result, User? user, String? detail})> validate(String token) async {
+  Future<({
+    String result,
+    User? user,
+    String? detail,
+    String? attendanceEvent,
+    DateTime? enteredAt,
+    DateTime? exitedAt,
+    int? workedSeconds,
+  })> validate(String token) async {
     AppLogger.i(_tag, 'validate()');
     try {
       final data = await _remote.validate(token);
@@ -36,8 +44,24 @@ class QrRepositoryImpl implements QrRepository {
         user = UserModel.fromJson(data['user'] as Map<String, dynamic>).toEntity();
       }
       final detail = data['detail'] as String?;
-      AppLogger.i(_tag, 'validate() ✅ result=$result');
-      return (result: result, user: user, detail: detail);
+      final attendanceEvent = data['attendance_event'] as String?;
+      final enteredAt = data['entered_at'] != null
+          ? DateTime.tryParse(data['entered_at'] as String)
+          : null;
+      final exitedAt = data['exited_at'] != null
+          ? DateTime.tryParse(data['exited_at'] as String)
+          : null;
+      final workedSeconds = data['worked_seconds'] as int?;
+      AppLogger.i(_tag, 'validate() ✅ result=$result event=$attendanceEvent');
+      return (
+        result: result,
+        user: user,
+        detail: detail,
+        attendanceEvent: attendanceEvent,
+        enteredAt: enteredAt,
+        exitedAt: exitedAt,
+        workedSeconds: workedSeconds,
+      );
     } catch (e, st) {
       AppLogger.e(_tag, 'validate() ❌', error: e, stackTrace: st);
       rethrow;

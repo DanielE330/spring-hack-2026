@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:file_saver/file_saver.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../../core/utils/snackbar_utils.dart';
 import '../providers/auth_provider.dart';
 import '../providers/devices_provider.dart';
 import '../widgets/qr_pass_widget.dart';
@@ -16,18 +17,12 @@ bool get _isMobile =>
     !kIsWeb && (Platform.isAndroid || Platform.isIOS);
 
 Future<void> _downloadReport(BuildContext context, WidgetRef ref) async {
-  final messenger = ScaffoldMessenger.of(context);
-  messenger.showSnackBar(
-    const SnackBar(content: Text('Загрузка отчёта...')),
-  );
+  showInfoSnack(context, 'Загрузка отчёта...');
   try {
     final bytes = await ref.read(devicesProvider.notifier).downloadReport();
     if (!context.mounted) return;
     if (bytes == null || bytes.isEmpty) {
-      messenger.hideCurrentSnackBar();
-      messenger.showSnackBar(
-        const SnackBar(content: Text('Не удалось получить отчёт')),
-      );
+      showWarningSnack(context, 'Не удалось получить отчёт');
       return;
     }
     final now = DateTime.now();
@@ -35,12 +30,10 @@ Future<void> _downloadReport(BuildContext context, WidgetRef ref) async {
     final uint8Bytes = Uint8List.fromList(bytes);
 
     if (_isMobile) {
-      // На мобилке — сохраняем во временную папку и открываем системный шаринг
       final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/$filename');
       await file.writeAsBytes(uint8Bytes);
       if (!context.mounted) return;
-      messenger.hideCurrentSnackBar();
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path, mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')],
@@ -48,25 +41,18 @@ Future<void> _downloadReport(BuildContext context, WidgetRef ref) async {
         ),
       );
     } else {
-      // На десктопе — просто сохраняем файл
       await FileSaver.instance.saveFile(
         name: filename,
         bytes: uint8Bytes,
         mimeType: MimeType.microsoftExcel,
       );
       if (context.mounted) {
-        messenger.hideCurrentSnackBar();
-        messenger.showSnackBar(
-          const SnackBar(content: Text('Отчёт сохранён ✅')),
-        );
+        showSuccessSnack(context, 'Отчёт сохранён');
       }
     }
   } catch (e) {
     if (context.mounted) {
-      messenger.hideCurrentSnackBar();
-      messenger.showSnackBar(
-        SnackBar(content: Text('Ошибка загрузки: $e')),
-      );
+      showErrorSnack(context, e);
     }
   }
 }

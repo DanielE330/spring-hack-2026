@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_input.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/utils/error_helpers.dart';
+import '../../../core/utils/snackbar_utils.dart';
 import '../../../data/sources/auth_remote_data_source.dart';
 
 class ForgotPasswordPage extends ConsumerStatefulWidget {
@@ -54,7 +56,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = e.toString();
+          _errorMessage = extractErrorMessage(e);
           _isLoading = false;
         });
       }
@@ -118,53 +120,11 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                 ),
                 const SizedBox(height: 24),
                 if (_successMessage != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE8F8EE),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF2ECC71), width: 0.5),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.check_circle_rounded, color: Color(0xFF2ECC71)),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _successMessage!,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: const Color(0xFF1A6B3C),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  InlineMessageBanner.success(_successMessage!),
                   const SizedBox(height: 24),
                 ],
                 if (_errorMessage != null) ...[
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFDE8E8),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFFE74C3C), width: 0.5),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(Icons.error_outline_rounded, color: Color(0xFFE74C3C)),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            _errorMessage!,
-                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: const Color(0xFF9B1C1C),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  InlineMessageBanner.error(_errorMessage!),
                   const SizedBox(height: 24),
                 ],
                 AppButton(

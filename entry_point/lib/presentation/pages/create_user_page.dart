@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/utils/validators.dart';
+import '../../core/utils/snackbar_utils.dart';
 import '../providers/create_user_provider.dart';
 import '../widgets/app_button.dart';
 import '../widgets/app_input.dart';
@@ -50,12 +51,8 @@ class _CreateUserPageState extends ConsumerState<CreateUserPage> {
     if (!mounted) return;
 
     if (ok) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Пользователь успешно создан'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-        ),
-      );
+      if (!mounted) return;
+      showSuccessSnack(context, 'Пользователь успешно создан');
       _formKey.currentState?.reset();
       _emailCtrl.clear();
       _nameCtrl.clear();
@@ -71,15 +68,9 @@ class _CreateUserPageState extends ConsumerState<CreateUserPage> {
     final state = ref.watch(createUserProvider);
     final theme = Theme.of(context);
 
-    // Показ ошибки
     ref.listen<CreateUserState>(createUserProvider, (prev, next) {
       if (next.error != null && next.error != prev?.error) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.error!),
-            backgroundColor: const Color(0xFFE74C3C),
-          ),
-        );
+        showErrorSnack(context, next.error!);
       }
     });
 

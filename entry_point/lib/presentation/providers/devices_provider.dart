@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/app_logger.dart';
+import '../../core/utils/error_helpers.dart';
 import '../../data/repositories/device_repository_impl.dart';
 import '../../data/sources/device_remote_data_source.dart';
 import '../../domain/entities/device.dart';
@@ -57,7 +58,7 @@ class DevicesNotifier extends StateNotifier<DevicesState> {
       AppLogger.i(_tag, 'load() ✅ count=${devices.length}');
     } catch (e, st) {
       AppLogger.e(_tag, 'load() ❌', error: e, stackTrace: st);
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: extractErrorMessage(e));
     }
   }
 
@@ -71,7 +72,7 @@ class DevicesNotifier extends StateNotifier<DevicesState> {
       AppLogger.i(_tag, 'delete() ✅ id=$id');
     } catch (e, st) {
       AppLogger.e(_tag, 'delete() ❌', error: e, stackTrace: st);
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: extractErrorMessage(e));
     }
   }
 
@@ -85,7 +86,7 @@ class DevicesNotifier extends StateNotifier<DevicesState> {
       AppLogger.i(_tag, 'adminDelete() ✅ id=$id');
     } catch (e, st) {
       AppLogger.e(_tag, 'adminDelete() ❌', error: e, stackTrace: st);
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: extractErrorMessage(e));
     }
   }
 
@@ -97,7 +98,7 @@ class DevicesNotifier extends StateNotifier<DevicesState> {
       return bytes;
     } catch (e, st) {
       AppLogger.e(_tag, 'downloadReport() ❌', error: e, stackTrace: st);
-      state = state.copyWith(error: e.toString());
+      state = state.copyWith(error: extractErrorMessage(e));
       return null;
     }
   }

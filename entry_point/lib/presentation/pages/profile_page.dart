@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../core/utils/snackbar_utils.dart';
 import '../providers/auth_provider.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
@@ -26,15 +27,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       // Refresh user data to get new avatar URL
       await ref.read(authProvider.notifier).init();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Аватарка обновлена')),
-        );
+        showSuccessSnack(context, 'Аватарка обновлена');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка: $e')),
-        );
+        showErrorSnack(context, e);
       }
     } finally {
       if (mounted) setState(() => _avatarLoading = false);
@@ -48,15 +45,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       await repo.deleteAvatar();
       await ref.read(authProvider.notifier).init();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Аватарка удалена')),
-        );
+        showSuccessSnack(context, 'Аватарка удалена');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка: $e')),
-        );
+        showErrorSnack(context, e);
       }
     } finally {
       if (mounted) setState(() => _avatarLoading = false);

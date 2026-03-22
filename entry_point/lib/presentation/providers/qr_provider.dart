@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/utils/app_logger.dart';
+import '../../core/utils/error_helpers.dart';
 import '../../data/repositories/qr_repository_impl.dart';
 import '../../data/sources/qr_remote_data_source.dart';
 import '../../domain/entities/qr_token.dart';
@@ -73,7 +74,7 @@ class QrNotifier extends StateNotifier<QrState> {
     } catch (e, st) {
       AppLogger.e(_tag, 'generate() ❌', error: e, stackTrace: st);
       if (_disposed || !mounted) return;
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: extractErrorMessage(e));
     }
   }
 
@@ -122,11 +123,24 @@ class ValidateResult {
     required this.isGranted,
     this.user,
     this.detail,
+    this.attendanceEvent,
+    this.enteredAt,
+    this.exitedAt,
+    this.workedSeconds,
   });
 
   final bool isGranted;
   final User? user;
   final String? detail;
+
+  /// 'entry' | 'exit'
+  final String? attendanceEvent;
+  final DateTime? enteredAt;
+  final DateTime? exitedAt;
+  final int? workedSeconds;
+
+  bool get isEntry => attendanceEvent == 'entry';
+  bool get isExit  => attendanceEvent == 'exit';
 }
 
 class ScannerState {
@@ -173,13 +187,17 @@ class ScannerNotifier extends StateNotifier<ScannerState> {
           isGranted: r.result == 'granted',
           user: r.user,
           detail: r.detail,
+          attendanceEvent: r.attendanceEvent,
+          enteredAt: r.enteredAt,
+          exitedAt: r.exitedAt,
+          workedSeconds: r.workedSeconds,
         ),
       );
     } catch (e, st) {
       AppLogger.e(_tag, 'validate() ❌', error: e, stackTrace: st);
       state = state.copyWith(
         isLoading: false,
-        result: ValidateResult(isGranted: false, detail: e.toString()),
+        result: ValidateResult(isGranted: false, detail: extractErrorMessage(e)),
       );
     }
   }

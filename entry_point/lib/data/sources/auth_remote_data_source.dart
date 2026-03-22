@@ -70,32 +70,6 @@ class AuthRemoteDataSource {
     AppLogger.i(_tag, 'logout ✅');
   }
 
-  /// POST /auth/first-admin/
-  Future<Map<String, dynamic>> createFirstAdmin({
-    required String email,
-    required String name,
-    required String surname,
-    String? patronymic,
-    required String password,
-  }) async {
-    AppLogger.i(_tag, 'createFirstAdmin → email=$email');
-    final body = <String, dynamic>{
-      'email': email,
-      'name': name,
-      'surname': surname,
-      'password': password,
-    };
-    if (patronymic != null && patronymic.isNotEmpty) {
-      body['patronymic'] = patronymic;
-    }
-    final resp = await _dio.post<Map<String, dynamic>>(
-      ApiConstants.firstAdmin,
-      data: body,
-    );
-    AppLogger.i(_tag, 'createFirstAdmin ✅');
-    return resp.data!;
-  }
-
   /// POST /auth/password-reset/
   Future<Map<String, dynamic>> requestPasswordReset({required String email}) async {
     AppLogger.i(_tag, 'requestPasswordReset → email=$email');

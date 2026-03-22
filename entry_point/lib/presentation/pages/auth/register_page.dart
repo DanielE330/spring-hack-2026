@@ -4,6 +4,7 @@ import '../../providers/auth_provider.dart';
 import '../../widgets/app_button.dart';
 import '../../widgets/app_input.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/utils/snackbar_utils.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -29,22 +30,18 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   Future<void> _submit() async {
     // Registration via app is not supported in this version.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Регистрация недоступна. Обратитесь к администратору.')),
-    );
+    showWarningSnack(context, 'Регистрация недоступна. Обратитесь к администратору.');
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = ref.watch(authProvider);
 
-    if (auth.error != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(auth.error!), backgroundColor: Colors.red),
-        );
-      });
-    }
+    ref.listen<AuthState>(authProvider, (prev, next) {
+      if (next.error != null && next.error != prev?.error) {
+        showErrorSnack(context, next.error!);
+      }
+    });
 
     return Scaffold(
       appBar: AppBar(title: const Text('Регистрация')),
