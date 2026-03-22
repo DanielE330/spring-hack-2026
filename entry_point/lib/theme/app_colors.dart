@@ -12,7 +12,7 @@ class RtColors {
   static const Color darkBg = Color(0xFF1A1A2E);
   static const Color darkSurface = Color(0xFF232340);
   static const Color darkCard = Color(0xFF2A2A4A);
-  static const Color darkBorder = Color(0xFF3A3A5C);
+  static const Color darkBorder = Color(0xFF7700ff);
 
   // Тёмная тема — текст
   static const Color darkTextPrimary = Color(0xFFF0F0F5);

@@ -63,42 +63,54 @@ class QrNotifier extends StateNotifier<QrState> {
     if (_disposed) return;
     AppLogger.i(_tag, 'generate(forceNew=$forceNew)');
     _timer?.cancel();
-    state = state.copyWith(isLoading: true, clearError: true);
+    
     try {
+      if (!_disposed) {
+        state = state.copyWith(isLoading: true, clearError: true);
+      }
+      
       final qr = await _repo.generate(forceNew: forceNew);
-      if (_disposed || !mounted) return;
+      if (_disposed) return;
+      
       // Всегда сбрасываем таймер на 300 сек — QR всегда новый
       state = QrState(qrToken: qr, secondsLeft: _ttlSeconds, isLoading: false);
       _startCountdown();
       AppLogger.i(_tag, 'generate() ✅ secondsLeft=$_ttlSeconds');
     } catch (e, st) {
       AppLogger.e(_tag, 'generate() ❌', error: e, stackTrace: st);
-      if (_disposed || !mounted) return;
-      state = state.copyWith(isLoading: false, error: extractErrorMessage(e));
+      if (_disposed) return;
+      
+      try {
+        state = state.copyWith(isLoading: false, error: extractErrorMessage(e));
+      } catch (_) {
+        // Widget already disposed
+        AppLogger.w(_tag, 'Failed to update state — widget disposed');
+      }
     }
   }
 
   void _startCountdown() {
     _timer?.cancel();
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_disposed || !mounted) {
+      if (_disposed) {
         timer.cancel();
         _timer = null;
         return;
       }
+      
       try {
         if (state.secondsLeft <= 1) {
           timer.cancel();
           _timer = null;
           AppLogger.i(_tag, 'QR expired — auto-regenerating');
           generate();
-        } else {
+        } else if (!_disposed) {
           state = state.copyWith(secondsLeft: state.secondsLeft - 1);
         }
       } catch (e) {
         timer.cancel();
         _timer = null;
-        AppLogger.w(_tag, 'Timer cancelled — widget disposed');
+        AppLogger.w(_tag, 'Timer callback error: $e');
       }
     });
   }

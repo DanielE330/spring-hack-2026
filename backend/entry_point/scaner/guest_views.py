@@ -2,7 +2,8 @@ import logging
 
 from django.utils import timezone
 from rest_framework.views import APIView
-from rest_framework.generics import ListAPIView, GenericAPIView
+from rest_framework.generics import ListAPIView, GenericAPIView, CreateAPIView
+from rest_framework.mixins import CreateModelMixin
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
@@ -30,8 +31,9 @@ logger = logging.getLogger('scaner')
     },
     tags=["Guest Passes"],
 )
-class GuestPassCreateView(GenericAPIView):
+class GuestPassCreateView(CreateModelMixin, GenericAPIView):
     serializer_class = GuestPassCreateSerializer
+    queryset = GuestPass.objects.all()
     permission_classes = [IsAuthenticated]
 
     def post(self, request, *args, **kwargs):
@@ -41,21 +43,13 @@ class GuestPassCreateView(GenericAPIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        return self.create(request, *args, **kwargs)
 
-        guest_pass = GuestPass.objects.create(
-            **serializer.validated_data,
-            created_by=request.user,
-        )
+    def perform_create(self, serializer):
+        guest_pass = serializer.save(created_by=self.request.user)
         logger.info(
             "[GuestPassCreateView] Создан гостевой пропуск id=%s guest=%s by=%s",
-            guest_pass.id, guest_pass.guest_name, request.user.email,
-        )
-
-        return Response(
-            GuestPassSerializer(guest_pass).data,
-            status=status.HTTP_201_CREATED,
+            guest_pass.id, guest_pass.guest_name, self.request.user.email,
         )
 
 
