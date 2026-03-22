@@ -360,7 +360,8 @@ class PasswordResetRequestView(GenericAPIView):
         try:
             user = User.objects.get(email=email)
         except User.DoesNotExist:
-            # Не раскрываем, существует ли email (защита от перебора)
+            # Не раскрываем клиенту, существует ли email (защита от перебора)
+            logger.warning("[PasswordResetRequestView] Запрос сброса пароля для неизвестной почты: %s", email)
             return Response({"detail": "Если email зарегистрирован, письмо будет отправлено."}, status=status.HTTP_200_OK)
 
         timeout = getattr(django_settings, 'PASSWORD_RESET_TIMEOUT_MINUTES', 30)
