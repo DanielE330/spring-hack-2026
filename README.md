@@ -1,12 +1,40 @@
-# 🎫 Spring Hack 2026 — Система учёта посещаемости
+# Весенний хакатон 2026(ДГТУ) — Система учёта посещаемости, кейс от комании "Ростелеком"
+# 3 место, команда с кодовым названием "лицом о клавиатуру"
 
 **Многоуровневая система для учёта посещаемости сотрудников, гостей и подрядчиков на производстве.**
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Made with Flutter](https://img.shields.io/badge/Made%20with-Flutter-02569B?logo=flutter)](https://flutter.dev)
+[![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python)](https://www.python.org/)
+[![Django 4.2+](https://img.shields.io/badge/Django-4.2+-092E20?logo=django)](https://www.djangoproject.com/)
+
 ## 📋 Описание
 
-- **📱 Flutter приложение** (entry_point): Web/Android/iOS, QR-пропуска, гостевые пропуска, админ-панель
-- **🔧 Django Backend** (backend): REST API, хранение данных, управление пропусками, отчёты
-- **📦 PostgreSQL + Redis**: Хранилище данных и кеширование
+Полнофункциональная система управления доступом и учета посещаемости:
+
+- **📱 Flutter приложение** — кроссплатформенное (Web, Android, iOS, Linux, Windows, macOS)
+- **🔧 Django REST API** — микросервисная архитектура с разделением слоев
+- **📦 PostgreSQL + Redis** — надежное хранилище и кеширование
+- 🎫 **QR-пропуска** — быстрое сканирование при входе/выходе
+- 👥 **Гостевые пропуска** — краткосрочный доступ для посетителей
+- 📊 **Отчеты** — аналитика посещаемости и активности
+- 🔐 **Управление правами** — различные уровни доступа
+
+## 📚 Документация
+
+| Документ | Описание |
+|----------|---------|
+| [INSTALLATION.md](INSTALLATION.md) | 📦 Установка и запуск |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | 🏗️ Архитектура проекта |
+| [QUICKSTART.md](QUICKSTART.md) | ⚡ Быстрый старт |
+| [backend/README.md](backend/README.md) | 🔧 Django Backend |
+| [entry_point/README.md](entry_point/README.md) | 📱 Flutter Frontend |
+| [SECURITY.md](SECURITY.md) | 🔐 Безопасность |
+| [docs/API.md](docs/API.md) | 📚 REST API справочник |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | 🏛️ Глубокая архитектура |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | 🚀 Production развертывание |
+| [docs/TESTING.md](docs/TESTING.md) | 🧪 Тестирование |
+| [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) | 📂 Структура проекта |
 
 ---
 
@@ -368,16 +396,43 @@ docker-compose up -d
 
 ---
 
+---
+
 ## 👨‍💼 Команда разработчиков
 
 Проект разработан как решение для Hack Spring 2026.
 
-**Лицензия**: MIT
+## 📄 Лицензия
+
+MIT License - см. [LICENSE](LICENSE)
+
+Copyright (c) 2026 Spring Hack 2026
 
 ---
 
 ## 📞 Поддержка
 
-По вопросам обращайтесь к ближайшему разработчику или создайте issue в репозитории.
+Если у вас есть вопросы или проблемы:
 
-**Последнее обновление**: 25 марта 2026 г.
+- 📖 **Документация** — см. файлы выше
+- 🐛 **Ошибка** — [создайте issue](../../issues/new?template=bug_report.md)
+- 💡 **Идея** — [предложите функцию](../../issues/new?template=feature_request.md)
+- 💬 **Обсуждение** — [обсудите](../../discussions)
+
+---
+
+## 🔗 Связанные ссылки
+
+- **Django документация**: https://docs.djangoproject.com/
+- **Flutter документация**: https://flutter.dev/docs
+- **PostgreSQL**: https://www.postgresql.org/docs/
+- **Redis**: https://redis.io/docs/
+- **REST API best practices**: https://restfulapi.net/
+
+---
+
+## 🙏 Благодарности
+
+Спасибо всем, кто способствовал развитию этого проекта!
+
+## Вся документация и часть кода(в особенности комментарии) была сгенирирована ИИ помошниками
