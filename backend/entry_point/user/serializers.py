@@ -4,11 +4,40 @@ from .models import User, UserDevice
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=8, required=True)
+    user_type_display = serializers.CharField(source='get_user_type_display', read_only=True)
+    avatar = serializers.ImageField(required=False, allow_null=True)
 
     class Meta:
         model = User
-        fields = ('id', 'email', 'name', 'surname', 'patronymic', 'password', 'is_admin')
-        read_only_fields = ('id',)
+        fields = ('id', 'email', 'name', 'surname', 'patronymic', 'password', 'is_admin', 'user_type', 'user_type_display', 'guest_valid_until', 'avatar')
+        read_only_fields = ('id', 'user_type', 'guest_valid_until')
+
+
+class FirstAdminSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, min_length=8, required=True)
+
+    class Meta:
+        model = User
+        fields = ('email', 'name', 'surname', 'patronymic', 'password')
+
+    def validate(self, data):
+        # Санитизация: убираем любые попытки передать is_admin или avatar
+        if 'is_admin' in self.initial_data:
+            raise serializers.ValidationError("Параметр 'is_admin' не допускается")
+        if 'avatar' in self.initial_data:
+            raise serializers.ValidationError("Параметр 'avatar' не допускается")
+        return data
+
+
+class ProfileSerializer(serializers.ModelSerializer):
+    """Сериализатор для профиля (чтение и частичное редактирование)."""
+    user_type_display = serializers.CharField(source='get_user_type_display', read_only=True)
+    is_guest = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = ('id', 'email', 'name', 'surname', 'patronymic', 'is_admin', 'user_type', 'user_type_display', 'guest_valid_until', 'avatar', 'is_guest')
+        read_only_fields = ('id', 'email', 'is_admin', 'user_type', 'user_type_display', 'guest_valid_until', 'is_guest')
 
 
 class AvatarSerializer(serializers.ModelSerializer):
@@ -60,13 +89,19 @@ class LoginResponseSerializer(serializers.Serializer):
     patronymic = serializers.CharField(allow_null=True)
     is_admin = serializers.BooleanField()
     avatar = serializers.ImageField(allow_null=True)
+    user_type = serializers.CharField()
+    user_type_display = serializers.CharField()
+    guest_valid_until = serializers.DateTimeField(allow_null=True)
     device_code = serializers.CharField(help_text="Ключ устройства — используется для авторизации")
 
 
 class MeSerializer(serializers.ModelSerializer):
+    user_type_display = serializers.CharField(source='get_user_type_display', read_only=True)
+    is_guest = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = User
-        fields = ('id', 'email', 'name', 'surname', 'patronymic', 'is_admin', 'avatar')
+        fields = ('id', 'email', 'name', 'surname', 'patronymic', 'is_admin', 'avatar', 'user_type', 'user_type_display', 'guest_valid_until', 'is_guest')
         read_only_fields = fields
 
 

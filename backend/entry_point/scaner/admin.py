@@ -57,7 +57,31 @@ class YearlyRecordAdmin(admin.ModelAdmin):
 
 @admin.register(GuestPass)
 class GuestPassAdmin(admin.ModelAdmin):
-    list_display = ('id', 'guest_name', 'guest_company', 'purpose', 'status', 'valid_from', 'valid_until', 'created_by')
-    list_filter = ('status', 'purpose')
-    search_fields = ('guest_name', 'guest_company', 'token')
+    list_display = ('id', 'guest_full_name', 'guest_company', 'purpose', 'status', 'user_email', 'valid_from', 'valid_until', 'created_by')
+    list_filter = ('status', 'purpose', 'created_at')
+    search_fields = ('guest_surname', 'guest_name', 'guest_patronymic', 'guest_company', 'token', 'user__email')
     readonly_fields = ('token', 'created_at', 'used_at', 'revoked_at')
+    fieldsets = (
+        ('Информация о госте', {
+            'fields': ('guest_surname', 'guest_name', 'guest_patronymic', 'guest_company', 'purpose', 'note')
+        }),
+        ('Аккаунт (для входа)', {
+            'fields': ('user',),
+            'description': 'Связанный аккаунт пользователя (если создан)'
+        }),
+        ('Пропуск', {
+            'fields': ('token', 'status', 'valid_from', 'valid_until')
+        }),
+        ('История', {
+            'fields': ('created_by', 'created_at', 'used_at', 'revoked_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    def guest_full_name(self, obj):
+        return obj.guest_full_name
+    guest_full_name.short_description = 'ФИО гостя'
+
+    def user_email(self, obj):
+        return obj.user.email if obj.user else '—'
+    user_email.short_description = 'Email аккаунта'

@@ -13,14 +13,19 @@ class CreateGuestPassPage extends ConsumerStatefulWidget {
 
 class _CreateGuestPassPageState extends ConsumerState<CreateGuestPassPage> {
   final _formKey = GlobalKey<FormState>();
+  final _surnameCtrl = TextEditingController();
   final _nameCtrl = TextEditingController();
+  final _patronymicCtrl = TextEditingController();
   final _companyCtrl = TextEditingController();
   final _noteCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
 
   String _purpose = 'meeting';
   DateTime? _validFrom;
   DateTime? _validUntil;
   bool _submitting = false;
+  bool _obscurePassword = true;
 
   static const _purposes = <String, String>{
     'meeting':       'Встреча',
@@ -40,9 +45,13 @@ class _CreateGuestPassPageState extends ConsumerState<CreateGuestPassPage> {
 
   @override
   void dispose() {
+    _surnameCtrl.dispose();
     _nameCtrl.dispose();
+    _patronymicCtrl.dispose();
     _companyCtrl.dispose();
     _noteCtrl.dispose();
+    _emailCtrl.dispose();
+    _passwordCtrl.dispose();
     super.dispose();
   }
 
@@ -82,7 +91,7 @@ class _CreateGuestPassPageState extends ConsumerState<CreateGuestPassPage> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     if (_validFrom == null || _validUntil == null) {
       showWarningSnack(context, 'Укажите время действия пропуска');
       return;
@@ -94,12 +103,16 @@ class _CreateGuestPassPageState extends ConsumerState<CreateGuestPassPage> {
 
     setState(() => _submitting = true);
     final ok = await ref.read(guestPassProvider.notifier).createPass(
+      guestSurname: _surnameCtrl.text.trim(),
       guestName: _nameCtrl.text.trim(),
+      guestPatronymic: _patronymicCtrl.text.trim(),
       purpose: _purpose,
       validFrom: _validFrom!,
       validUntil: _validUntil!,
       guestCompany: _companyCtrl.text.trim(),
       note: _noteCtrl.text.trim(),
+      guestEmail: _emailCtrl.text.trim(),
+      guestPassword: _passwordCtrl.text,
     );
     if (!mounted) return;
     setState(() => _submitting = false);
@@ -126,14 +139,35 @@ class _CreateGuestPassPageState extends ConsumerState<CreateGuestPassPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // ФИО гостя
+                // Фамилия
+                TextFormField(
+                  controller: _surnameCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Фамилия *',
+                    prefixIcon: Icon(Icons.person_outline),
+                  ),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Введите фамилию' : null,
+                ),
+                const SizedBox(height: 16),
+
+                // Имя
                 TextFormField(
                   controller: _nameCtrl,
                   decoration: const InputDecoration(
-                    labelText: 'ФИО гостя *',
+                    labelText: 'Имя *',
                     prefixIcon: Icon(Icons.person_outline),
                   ),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Введите ФИО' : null,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Введите имя' : null,
+                ),
+                const SizedBox(height: 16),
+
+                // Отчество
+                TextFormField(
+                  controller: _patronymicCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Отчество',
+                    prefixIcon: Icon(Icons.person_outline),
+                  ),
                 ),
                 const SizedBox(height: 16),
 
@@ -201,6 +235,67 @@ class _CreateGuestPassPageState extends ConsumerState<CreateGuestPassPage> {
                     prefixIcon: Icon(Icons.note_outlined),
                     alignLabelWithHint: true,
                   ),
+                ),
+                const SizedBox(height: 24),
+
+                // ─── Аккаунт гостя (опционально) ──────────────────
+                Text(
+                  'Аккаунт для входа (необязательно)',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Если указать email и пароль, гость сможет входить в систему',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.outline,
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // Email
+                TextFormField(
+                  controller: _emailCtrl,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    labelText: 'Email гостя',
+                    prefixIcon: Icon(Icons.email_outlined),
+                  ),
+                  validator: (v) {
+                    final email = v?.trim() ?? '';
+                    if (email.isEmpty) return null; // необязательное
+                    if (!email.contains('@') || !email.contains('.')) {
+                      return 'Введите корректный email';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+
+                // Пароль
+                TextFormField(
+                  controller: _passwordCtrl,
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
+                    labelText: 'Пароль гостя',
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    ),
+                  ),
+                  validator: (v) {
+                    final pwd = v ?? '';
+                    final email = _emailCtrl.text.trim();
+                    if (email.isNotEmpty && pwd.isEmpty) {
+                      return 'Укажите пароль для аккаунта';
+                    }
+                    if (pwd.isNotEmpty && pwd.length < 8) {
+                      return 'Минимум 8 символов';
+                    }
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 32),
 

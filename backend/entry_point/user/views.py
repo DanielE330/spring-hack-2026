@@ -18,7 +18,7 @@ from .serializers import (
     LoginResponseSerializer, UserSerializer, LoginSerializer,
     MeSerializer, DeviceSerializer, LogoutSerializer,
     PasswordResetRequestSerializer, PasswordResetConfirmSerializer,
-    AvatarSerializer,
+    AvatarSerializer, FirstAdminSerializer,
 )
 from drf_spectacular.utils import extend_schema, OpenApiParameter, OpenApiResponse
 from drf_spectacular.types import OpenApiTypes
@@ -30,7 +30,7 @@ logger = logging.getLogger('user')
 @extend_schema(
     summary="Создание первого администратора",
     description="Создает первого пользователя с правами администратора. Доступно только если база данных пуста",
-    request=UserSerializer,
+    request=FirstAdminSerializer,
     responses={
         201: OpenApiResponse(description="Администратор успешно создан"),
         403: OpenApiResponse(description="Ошибка: администратор уже существует"),
@@ -38,7 +38,7 @@ logger = logging.getLogger('user')
     },
     tags=["Admin"])
 class FirstAdminView(CreateAPIView):
-    serializer_class = UserSerializer
+    serializer_class = FirstAdminSerializer
     permission_classes = [AllowAny]
 
     def create(self, request, *args, **kwargs):
@@ -55,7 +55,6 @@ class FirstAdminView(CreateAPIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
         data = serializer.validated_data
-        data['is_admin'] = True
         logger.debug("[FirstAdminView] Данные прошли валидацию, email=%s", data.get('email'))
 
         user = User.objects.create_user(
@@ -161,10 +160,25 @@ class LoginView(GenericAPIView):
             logger.warning("[LoginView] Неудачная попытка входа для email=%s", email)
             return Response({"detail": "Неверный email или пароль"}, status=status.HTTP_401_UNAUTHORIZED)
 
+        # Проверяем что пользователь активен
+        if not user.is_active:
+            logger.warning("[LoginView] Пользователь неактивен: id=%s email=%s", user.id, email)
+            return Response({"detail": "Ваш аккаунт деактивирован"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Проверяем гостевой доступ
+        if user.user_type == 'guest' and user.guest_valid_until:
+            from django.utils import timezone
+            if timezone.now() > user.guest_valid_until:
+                logger.warning("[LoginView] Гостевой пропуск истёк для user_id=%s", user.id)
+                return Response(
+                    {"detail": "Ваш гостевой пропуск истёк"}, 
+                    status=status.HTTP_401_UNAUTHORIZED
+                )
+
         device = UserDevice.objects.create(user=user, device_name=device_name)
         logger.info(
-            "[LoginView] Успешный вход: id=%s email=%s device_name=%s",
-            user.id, user.email, device_name
+            "[LoginView] Успешный вход: id=%s email=%s user_type=%s device_name=%s",
+            user.id, user.email, user.user_type, device_name
         )
 
         return Response({
@@ -175,6 +189,9 @@ class LoginView(GenericAPIView):
             "patronymic": user.patronymic,
             "is_admin": user.is_admin,
             "avatar": request.build_absolute_uri(user.avatar.url) if user.avatar else None,
+            "user_type": user.user_type,
+            "user_type_display": user.get_user_type_display(),
+            "guest_valid_until": user.guest_valid_until,
             "device_code": device.key,
         }, status=status.HTTP_200_OK)
 

@@ -112,7 +112,7 @@ class _GuestPassCard extends ConsumerWidget {
               children: [
                 Expanded(
                   child: Text(
-                    pass.guestName,
+                    pass.guestFullName,
                     style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -150,6 +150,8 @@ class _GuestPassCard extends ConsumerWidget {
                 '${_formatDate(pass.validFrom)} — ${_formatDate(pass.validUntil)}', theme),
             if (pass.note.isNotEmpty)
               _infoRow(Icons.note_rounded, pass.note, theme),
+            if (pass.hasAccount && pass.userEmail != null)
+              _infoRow(Icons.email_rounded, 'Аккаунт: ${pass.userEmail}', theme),
             if (pass.createdByEmail != null)
               _infoRow(Icons.person_outline, 'Создал: ${pass.createdByEmail}', theme),
 
@@ -164,7 +166,7 @@ class _GuestPassCard extends ConsumerWidget {
                       context: context,
                       builder: (ctx) => AlertDialog(
                         title: const Text('Отменить пропуск?'),
-                        content: Text('Пропуск для «${pass.guestName}» будет отменён.'),
+                        content: Text('Пропуск для «${pass.guestFullName}» будет отменён.'),
                         actions: [
                           TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Нет')),
                           TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Да, отменить')),

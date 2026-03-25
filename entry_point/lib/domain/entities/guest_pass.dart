@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 class GuestPass extends Equatable {
   const GuestPass({
     required this.id,
+    required this.guestSurname,
     required this.guestName,
     required this.purpose,
     required this.status,
@@ -10,6 +11,8 @@ class GuestPass extends Equatable {
     required this.createdAt,
     required this.validFrom,
     required this.validUntil,
+    this.guestPatronymic = '',
+    this.guestFullName = '',
     this.guestCompany = '',
     this.note = '',
     this.createdBy,
@@ -18,10 +21,15 @@ class GuestPass extends Equatable {
     this.revokedAt,
     this.isValid = false,
     this.isExpired = false,
+    this.hasAccount = false,
+    this.userEmail,
   });
 
   final int id;
+  final String guestSurname;
   final String guestName;
+  final String guestPatronymic;
+  final String guestFullName;
   final String guestCompany;
   final String purpose;
   final String note;
@@ -38,6 +46,8 @@ class GuestPass extends Equatable {
 
   final bool isValid;
   final bool isExpired;
+  final bool hasAccount;
+  final String? userEmail;
 
   String get purposeLabel {
     switch (purpose) {
@@ -61,8 +71,9 @@ class GuestPass extends Equatable {
 
   @override
   List<Object?> get props => [
-    id, guestName, guestCompany, purpose, note, token, status,
+    id, guestSurname, guestName, guestPatronymic, guestFullName,
+    guestCompany, purpose, note, token, status,
     createdBy, createdByEmail, createdAt, validFrom, validUntil,
-    usedAt, revokedAt, isValid, isExpired,
+    usedAt, revokedAt, isValid, isExpired, hasAccount, userEmail,
   ];
 }

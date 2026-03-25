@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../entry_point"
+		},
+		{
+			"path": "../release"
+		}
+	],
+	"settings": {}
+}

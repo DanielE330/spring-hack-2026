@@ -19,7 +19,13 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   }
 
   Future<void> _checkAuth() async {
-    await ref.read(authProvider.notifier).init();
+    // init() уже вызывается в _Bootstrap (main.dart).
+    // Ждём, пока статус сменится с initial, вместо повторного вызова init().
+    final auth = ref.read(authProvider);
+    if (auth.status == AuthStatus.initial) {
+      // Подождём пока _Bootstrap.init() завершится
+      await ref.read(authProvider.notifier).init();
+    }
     if (!mounted) return;
     final status = ref.read(authProvider).status;
     if (status == AuthStatus.authenticated) {

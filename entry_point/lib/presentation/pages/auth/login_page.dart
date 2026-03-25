@@ -29,7 +29,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Future<void> _submit() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!(_formKey.currentState?.validate() ?? false)) return;
     final ok = await ref
         .read(authProvider.notifier)
         .login(_emailCtrl.text.trim(), _passCtrl.text);

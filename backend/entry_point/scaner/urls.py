@@ -2,8 +2,7 @@ from django.urls import path
 from .views import ValidateQRView
 from .export_views import ExportAttendanceExcelView
 from .guest_views import (
-    GuestPassCreateView,
-    GuestPassListView,
+    GuestPassListCreateView,
     GuestPassRevokeView,
     GuestPassValidateView,
 )
@@ -14,8 +13,8 @@ urlpatterns = [
     path('reports/attendance/', ExportAttendanceExcelView.as_view()),  # GET — Excel-отчёт
 
     # Гостевые пропуска
-    path('guest-passes/', GuestPassListView.as_view()),              # GET  — список
-    path('guest-passes/create/', GuestPassCreateView.as_view()),     # POST — создать
+    path('guest-passes/', GuestPassListCreateView.as_view()),         # GET/POST — список и создание
+    path('guest-passes/create/', GuestPassListCreateView.as_view()),  # POST — создание (альтернативный путь)
     path('guest-passes/<int:pk>/revoke/', GuestPassRevokeView.as_view()),  # POST — отменить
     path('guest-passes/validate/', GuestPassValidateView.as_view()), # POST — валидация при сканировании
 ]

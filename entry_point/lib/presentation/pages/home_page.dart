@@ -103,7 +103,7 @@ class HomePage extends ConsumerWidget {
               const QrPassWidget(),
               const SizedBox(height: 16),
 
-              // Admin-only actions
+              // только для админов - кнопки "Сканировать QR" и "Админ панель"
               if (isAdmin) ...[
                 _ActionButton(
                   icon: Icons.qr_code_scanner_rounded,
@@ -115,8 +115,8 @@ class HomePage extends ConsumerWidget {
                 const SizedBox(height: 16),
                 _ActionButton(
                   icon: Icons.admin_panel_settings_rounded,
-                  label: 'Администрирование',
-                  subtitle: 'Создать пользователя · Выгрузить отчёт',
+                  label: 'Админ панель',
+                  subtitle: 'Создать пользователя · Временные пропуска · Выгрузить отчёт',
                   color: Theme.of(context).colorScheme.secondary,
                   onTap: () => context.push('/admin'),
                 ),

@@ -76,13 +76,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final GetMeUseCase  _getMe;
   final LogoutUseCase _logout;
 
+  Future<void>? _initFuture;
+
   Future<void> _onForceLogout() async {
     AppLogger.w(_tag, 'Force logout from interceptor');
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
   /// Called on Splash screen start.
-  Future<void> init() async {
+  /// Protected from concurrent calls — second call awaits the first.
+  Future<void> init() {
+    return _initFuture ??= _doInit().whenComplete(() => _initFuture = null);
+  }
+
+  Future<void> _doInit() async {
     AppLogger.i(_tag, 'init()');
     final deviceCode = await SecureStorage.instance.getDeviceCode();
     if (deviceCode == null) {

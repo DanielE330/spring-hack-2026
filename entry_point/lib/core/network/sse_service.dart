@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../constants/api_constants.dart';
@@ -48,12 +49,17 @@ final attendanceEventProvider =
     StreamProvider.autoDispose<AttendanceEvent>((ref) {
   const tag = 'SSE';
   final controller = StreamController<AttendanceEvent>();
-  HttpClient? httpClient;
   bool disposed = false;
+
+  // На web SSE через dart:io невозможен — пропускаем.
+  if (kIsWeb) {
+    AppLogger.w(tag, 'SSE not supported on web — skipped');
+    ref.onDispose(() => controller.close());
+    return controller.stream;
+  }
 
   ref.onDispose(() {
     disposed = true;
-    httpClient?.close(force: true);
     controller.close();
     AppLogger.i(tag, 'Provider disposed — connection closed');
   });
@@ -73,12 +79,13 @@ final attendanceEventProvider =
     const maxRetry = 30;
 
     while (!disposed) {
+      HttpClient? httpClient;
       try {
         httpClient = HttpClient();
-        httpClient!.connectionTimeout = const Duration(seconds: 10);
+        httpClient.connectionTimeout = const Duration(seconds: 10);
 
         AppLogger.i(tag, 'Connecting to $url');
-        final request = await httpClient!.getUrl(url);
+        final request = await httpClient.getUrl(url);
         request.headers.set('Authorization', 'Token $deviceCode');
         request.headers.set('Accept', 'text/event-stream');
         request.headers.set('Cache-Control', 'no-cache');
@@ -88,7 +95,7 @@ final attendanceEventProvider =
         if (response.statusCode != 200) {
           AppLogger.w(tag, 'HTTP ${response.statusCode}');
           await response.drain<void>();
-          throw HttpException('SSE HTTP ${response.statusCode}');
+          throw Exception('SSE HTTP ${response.statusCode}');
         }
 
         AppLogger.i(tag, 'Connected ✅');
@@ -113,6 +120,7 @@ final attendanceEventProvider =
         }
 
         AppLogger.w(tag, 'Stream ended — will reconnect');
+        httpClient.close(force: true);
       } catch (e) {
         if (disposed) break;
         AppLogger.w(tag, 'Error: $e');

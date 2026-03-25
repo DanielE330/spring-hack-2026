@@ -148,20 +148,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     .titleLarge
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 4),
-              Text(
-                user?.email ?? '',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant),
-              ),
               const SizedBox(height: 8),
-              if (auth.isAdmin)
-                Chip(
-                  avatar: Icon(Icons.admin_panel_settings, size: 18, color: Theme.of(context).colorScheme.primary),
-                  label: Text('Администратор', style: TextStyle(color: Theme.of(context).colorScheme.onSecondaryContainer)),
-                  backgroundColor:
-                      Theme.of(context).colorScheme.secondaryContainer,
-                ),
               const Divider(height: 40),
 
               // Info rows

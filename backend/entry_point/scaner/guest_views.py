@@ -21,17 +21,87 @@ from rest_framework.exceptions import PermissionDenied
 logger = logging.getLogger('scaner')
 
 
-@extend_schema(
-    summary="Создать гостевой пропуск",
-    description="Создаёт временный пропуск для гостя/подрядчика/курьера. Только администраторы.",
-    request=GuestPassCreateSerializer,
-    responses={
-        201: GuestPassSerializer,
-        400: OpenApiResponse(description="Ошибка валидации"),
-        403: OpenApiResponse(description="Недостаточно прав"),
-    },
-    tags=["Guest Passes"],
-)
+class GuestPassListCreateView(APIView):
+    """Объединённая вью для GET (список) и POST (создание) гостевых пропусков."""
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        summary="Список гостевых пропусков",
+        description="Возвращает все гостевые пропуска. Только администраторы. "
+                    "Автоматически помечает истёкшие пропуска.",
+        responses={200: GuestPassSerializer(many=True)},
+        tags=["Guest Passes"],
+    )
+    def get(self, request):
+        if not request.user.is_admin:
+            return Response(
+                {"detail": "Только администраторы могут просматривать гостевые пропуска"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Автоматически обновляем статус истёкших пропусков
+        now = timezone.now()
+        GuestPass.objects.filter(
+            status='active', valid_until__lt=now,
+        ).update(status='expired')
+
+        guest_passes = GuestPass.objects.all().select_related('created_by', 'user')
+        serializer = GuestPassSerializer(guest_passes, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="Создать гостевой пропуск",
+        description="Создаёт временный пропуск для гостя/подрядчика/курьера и (опционально) аккаунт для входа. Только администраторы.",
+        request=GuestPassCreateSerializer,
+        responses={
+            201: GuestPassSerializer,
+            400: OpenApiResponse(description="Ошибка валидации"),
+            403: OpenApiResponse(description="Недостаточно прав"),
+        },
+        tags=["Guest Passes"],
+    )
+    def post(self, request):
+        if not request.user.is_admin:
+            return Response(
+                {"detail": "Только администраторы могут создавать гостевые пропуска"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = GuestPassCreateSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        guest_pass = serializer.save(created_by=request.user)
+        logger.info(
+            "[GuestPassListCreateView] Создан гостевой пропуск id=%s guest=%s by=%s",
+            guest_pass.id, guest_pass.guest_name, request.user.email,
+        )
+        
+        output = GuestPassSerializer(guest_pass).data
+        return Response(output, status=status.HTTP_201_CREATED)
+
+
+# Legacy — оставляем для обратной совместимости
+class GuestPassListView(ListAPIView):
+    serializer_class = GuestPassSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        now = timezone.now()
+        GuestPass.objects.filter(
+            status='active', valid_until__lt=now,
+        ).update(status='expired')
+        return GuestPass.objects.all().select_related('created_by', 'user')
+
+    def list(self, request, *args, **kwargs):
+        if not request.user.is_admin:
+            return Response(
+                {"detail": "Только администраторы могут просматривать гостевые пропуска"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return super().list(request, *args, **kwargs)
+
+
 class GuestPassCreateView(CreateModelMixin, GenericAPIView):
     serializer_class = GuestPassCreateSerializer
     queryset = GuestPass.objects.all()
@@ -50,7 +120,6 @@ class GuestPassCreateView(CreateModelMixin, GenericAPIView):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         self.perform_create(serializer)
-        # Возвращаем полный объект через GuestPassSerializer
         output = GuestPassSerializer(serializer.instance).data
         return Response(output, status=status.HTTP_201_CREATED)
 
@@ -60,35 +129,6 @@ class GuestPassCreateView(CreateModelMixin, GenericAPIView):
             "[GuestPassCreateView] Создан гостевой пропуск id=%s guest=%s by=%s",
             guest_pass.id, guest_pass.guest_name, self.request.user.email,
         )
-
-
-@extend_schema(
-    summary="Список гостевых пропусков",
-    description="Возвращает все гостевые пропуска. Только администраторы. "
-                "Автоматически помечает истёкшие пропуска.",
-    responses={200: GuestPassSerializer(many=True)},
-    tags=["Guest Passes"],
-)
-class GuestPassListView(ListAPIView):
-    serializer_class = GuestPassSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        # Автоматически обновляем статус истёкших пропусков
-        now = timezone.now()
-        GuestPass.objects.filter(
-            status='active', valid_until__lt=now,
-        ).update(status='expired')
-
-        return GuestPass.objects.all().select_related('created_by')
-
-    def list(self, request, *args, **kwargs):
-        if not request.user.is_admin:
-            return Response(
-                {"detail": "Только администраторы могут просматривать гостевые пропуска"},
-                status=status.HTTP_403_FORBIDDEN,
-            )
-        return super().list(request, *args, **kwargs)
 
 
 @extend_schema(

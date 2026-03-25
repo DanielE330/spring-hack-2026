@@ -6,12 +6,16 @@ abstract class GuestPassRepository {
 
   /// Создать гостевой пропуск.
   Future<GuestPass> create({
+    required String guestSurname,
     required String guestName,
     required String purpose,
     required DateTime validFrom,
     required DateTime validUntil,
+    String guestPatronymic,
     String guestCompany,
     String note,
+    String guestEmail,
+    String guestPassword,
   });
 
   /// Отменить гостевой пропуск.

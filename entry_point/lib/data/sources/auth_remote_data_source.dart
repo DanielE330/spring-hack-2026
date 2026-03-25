@@ -21,14 +21,18 @@ class AuthRemoteDataSource {
       ApiConstants.login,
       data: {'email': email, 'password': password, 'device_name': deviceName},
     );
+    final data = resp.data;
+    if (data == null) throw Exception('Сервер вернул пустой ответ');
     AppLogger.i(_tag, 'login ✅');
-    return resp.data!;
+    return data;
   }
 
   Future<UserModel> getMe() async {
     AppLogger.i(_tag, 'getMe →');
     final resp = await _dio.get<Map<String, dynamic>>(ApiConstants.me);
-    final user = UserModel.fromJson(resp.data!);
+    final data = resp.data;
+    if (data == null) throw Exception('Сервер вернул пустой ответ');
+    final user = UserModel.fromJson(data);
     AppLogger.i(_tag, 'getMe ✅ userId=${user.id}');
     return user;
   }
@@ -57,8 +61,10 @@ class AuthRemoteDataSource {
       ApiConstants.createUser,
       data: body,
     );
+    final data = resp.data;
+    if (data == null) throw Exception('Сервер вернул пустой ответ');
     AppLogger.i(_tag, 'createUser ✅');
-    return resp.data!;
+    return data;
   }
 
   Future<void> logout({required String deviceCode}) async {
@@ -77,8 +83,10 @@ class AuthRemoteDataSource {
       ApiConstants.passwordReset,
       data: {'email': email},
     );
+    final data = resp.data;
+    if (data == null) throw Exception('Сервер вернул пустой ответ');
     AppLogger.i(_tag, 'requestPasswordReset ✅');
-    return resp.data!;
+    return data;
   }
 
   /// PUT /users/me/avatar/ (multipart)

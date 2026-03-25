@@ -19,7 +19,9 @@ class QrRemoteDataSource {
       data: {'force_new': true},
       queryParameters: {'force_new': '1'},
     );
-    final model = QrTokenModel.fromJson(resp.data!);
+    final data = resp.data;
+    if (data == null) throw Exception('Сервер вернул пустой ответ');
+    final model = QrTokenModel.fromJson(data);
     AppLogger.i(_tag, 'generate ✅ secondsLeft=${model.secondsLeft}');
     return model;
   }
@@ -30,7 +32,9 @@ class QrRemoteDataSource {
       ApiConstants.qrValidate,
       data: {'token': token},
     );
+    final data = resp.data;
+    if (data == null) throw Exception('Сервер вернул пустой ответ');
     AppLogger.i(_tag, 'validate ✅');
-    return resp.data!;
+    return data;
   }
 }

@@ -190,7 +190,9 @@ class GuestPass(models.Model):
         ('revoked', 'Отменён'),
     ]
 
-    guest_name = models.CharField(max_length=150, help_text="ФИО гостя")
+    guest_surname = models.CharField(max_length=50, default='', help_text="Фамилия гостя")
+    guest_name = models.CharField(max_length=50, default='', help_text="Имя гостя")
+    guest_patronymic = models.CharField(max_length=50, blank=True, default='', help_text="Отчество гостя")
     guest_company = models.CharField(max_length=200, blank=True, default='', help_text="Компания/организация гостя")
     purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES, default='meeting')
     note = models.TextField(blank=True, default='', help_text="Комментарий к пропуску")
@@ -201,6 +203,14 @@ class GuestPass(models.Model):
     created_by = models.ForeignKey(
         'user.User', on_delete=models.CASCADE, related_name='created_guest_passes',
         help_text="Администратор, создавший пропуск",
+    )
+    user = models.OneToOneField(
+        'user.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='guest_pass',
+        help_text="Созданный аккаунт пользователя для гостя (если это временный сотрудник)"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     valid_from = models.DateTimeField(help_text="Начало действия")
@@ -218,8 +228,8 @@ class GuestPass(models.Model):
         super().save(*args, **kwargs)
         if self._state.adding:
             logger.info(
-                "[GuestPass.save] Создан: id=%s guest=%s valid=%s–%s by=%s",
-                self.id, self.guest_name, self.valid_from, self.valid_until, self.created_by_id,
+                "[GuestPass.save] Создан: id=%s guest=%s %s valid=%s–%s by=%s",
+                self.id, self.guest_surname, self.guest_name, self.valid_from, self.valid_until, self.created_by_id,
             )
 
     @property
@@ -236,11 +246,23 @@ class GuestPass(models.Model):
         self.status = 'revoked'
         self.revoked_at = timezone.now()
         self.save(update_fields=['status', 'revoked_at'])
+        # Если есть связанный пользователь, деактивируем его
+        if self.user:
+            self.user.is_active = False
+            self.user.save(update_fields=['is_active'])
 
     def mark_used(self):
         self.status = 'used'
         self.used_at = timezone.now()
         self.save(update_fields=['status', 'used_at'])
 
+    @property
+    def guest_full_name(self):
+        """ФИО гостя."""
+        parts = [self.guest_surname, self.guest_name]
+        if self.guest_patronymic:
+            parts.append(self.guest_patronymic)
+        return ' '.join(parts)
+
     def __str__(self):
-        return f"GuestPass [{self.status}] {self.guest_name} {self.valid_from}–{self.valid_until}"
+        return f"GuestPass [{self.status}] {self.guest_full_name} {self.valid_from}–{self.valid_until}"

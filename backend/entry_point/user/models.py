@@ -39,12 +39,29 @@ class UserManager(BaseUserManager):
         return user
 
 class User(AbstractBaseUser, PermissionsMixin):
+    USER_TYPE_CHOICES = [
+        ('employee', 'Сотрудник'),
+        ('guest', 'Временный гость'),
+    ]
+
     name = models.CharField(max_length=50)
     surname = models.CharField(max_length=50)
     patronymic = models.CharField(max_length=50, blank=True, null=True)
     email = models.EmailField(unique=True)
     is_admin = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True, help_text='Указывает активен ли пользователь')
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
+    user_type = models.CharField(
+        max_length=20,
+        choices=USER_TYPE_CHOICES,
+        default='employee',
+        help_text='Тип пользователя'
+    )
+    guest_valid_until = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text='Дата истечения доступа для гостей'
+    )
 
     objects = UserManager()
 
@@ -56,8 +73,18 @@ class User(AbstractBaseUser, PermissionsMixin):
     def is_staff(self):
         return self.is_admin
 
+    @property
+    def is_guest(self):
+        """Проверяет, является ли пользователь гостем и его время ещё не истекло."""
+        from django.utils import timezone
+        if self.user_type != 'guest':
+            return False
+        if self.guest_valid_until is None:
+            return True
+        return timezone.now() <= self.guest_valid_until
+
     def __str__(self):
-        return self.email
+        return f"{self.email} ({self.get_user_type_display()})"
 
 class UserDevice(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='devices')

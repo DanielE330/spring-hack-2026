@@ -22,26 +22,37 @@ class GuestPassRemoteDataSource {
   }
 
   Future<GuestPassModel> create({
+    required String guestSurname,
     required String guestName,
     required String purpose,
     required DateTime validFrom,
     required DateTime validUntil,
+    String guestPatronymic = '',
     String guestCompany = '',
     String note = '',
+    String guestEmail = '',
+    String guestPassword = '',
   }) async {
-    AppLogger.i(_tag, 'create → guest=$guestName purpose=$purpose');
+    AppLogger.i(_tag, 'create → guest=$guestSurname $guestName purpose=$purpose');
+    final body = <String, dynamic>{
+      'guest_surname': guestSurname,
+      'guest_name': guestName,
+      'guest_patronymic': guestPatronymic,
+      'guest_company': guestCompany,
+      'purpose': purpose,
+      'note': note,
+      'valid_from': validFrom.toUtc().toIso8601String(),
+      'valid_until': validUntil.toUtc().toIso8601String(),
+    };
+    if (guestEmail.isNotEmpty) body['guest_email'] = guestEmail;
+    if (guestPassword.isNotEmpty) body['guest_password'] = guestPassword;
     final resp = await _dio.post<Map<String, dynamic>>(
       ApiConstants.guestPassesCreate,
-      data: {
-        'guest_name': guestName,
-        'guest_company': guestCompany,
-        'purpose': purpose,
-        'note': note,
-        'valid_from': validFrom.toUtc().toIso8601String(),
-        'valid_until': validUntil.toUtc().toIso8601String(),
-      },
+      data: body,
     );
-    final model = GuestPassModel.fromJson(resp.data!);
+    final data = resp.data;
+    if (data == null) throw Exception('Сервер вернул пустой ответ');
+    final model = GuestPassModel.fromJson(data);
     AppLogger.i(_tag, 'create ✅ id=${model.id}');
     return model;
   }
@@ -51,7 +62,9 @@ class GuestPassRemoteDataSource {
     final resp = await _dio.post<Map<String, dynamic>>(
       ApiConstants.guestPassRevoke(id),
     );
-    final model = GuestPassModel.fromJson(resp.data!);
+    final data = resp.data;
+    if (data == null) throw Exception('Сервер вернул пустой ответ');
+    final model = GuestPassModel.fromJson(data);
     AppLogger.i(_tag, 'revoke ✅ status=${model.status}');
     return model;
   }
@@ -62,7 +75,9 @@ class GuestPassRemoteDataSource {
       ApiConstants.guestPassesValidate,
       data: {'token': token},
     );
+    final data = resp.data;
+    if (data == null) throw Exception('Сервер вернул пустой ответ');
     AppLogger.i(_tag, 'validate ✅');
-    return resp.data!;
+    return data;
   }
 }

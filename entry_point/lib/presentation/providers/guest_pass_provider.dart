@@ -81,23 +81,31 @@ class GuestPassNotifier extends StateNotifier<GuestPassState> {
   }
 
   Future<bool> createPass({
+    required String guestSurname,
     required String guestName,
     required String purpose,
     required DateTime validFrom,
     required DateTime validUntil,
+    String guestPatronymic = '',
     String guestCompany = '',
     String note = '',
+    String guestEmail = '',
+    String guestPassword = '',
   }) async {
-    AppLogger.i(_tag, 'createPass() guest=$guestName');
+    AppLogger.i(_tag, 'createPass() guest=$guestSurname $guestName');
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final pass = await _create(
+        guestSurname: guestSurname,
         guestName: guestName,
+        guestPatronymic: guestPatronymic,
         purpose: purpose,
         validFrom: validFrom,
         validUntil: validUntil,
         guestCompany: guestCompany,
         note: note,
+        guestEmail: guestEmail,
+        guestPassword: guestPassword,
       );
       state = state.copyWith(
         passes: [pass, ...state.passes],

@@ -80,7 +80,7 @@ class AdminPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Администрирование')),
+      appBar: AppBar(title: const Text('Админ панель')),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(24),
