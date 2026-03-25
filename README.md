@@ -8,6 +8,8 @@
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python)](https://www.python.org/)
 [![Django 4.2+](https://img.shields.io/badge/Django-4.2+-092E20?logo=django)](https://www.djangoproject.com/)
 
+# [Готовые сборки](./release)
+
 ## 📋 Описание
 
 Полнофункциональная система управления доступом и учета посещаемости:
@@ -35,6 +37,8 @@
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | 🚀 Production развертывание |
 | [docs/TESTING.md](docs/TESTING.md) | 🧪 Тестирование |
 | [docs/PROJECT_STRUCTURE.md](docs/PROJECT_STRUCTURE.md) | 📂 Структура проекта |
+| [docs/WINDOWS_WINE_BUILD.md](docs/WINDOWS_WINE_BUILD.md) | 🍷 Windows сборка на Ubuntu (Wine) |
+| [release/README.md](release/README.md) | 📦 Готовые сборки для всех ОС |
 
 ---
 
@@ -105,6 +109,66 @@ spring-hack-2026/
 │
 └── README.md                  # Этот файл
 ```
+
+---
+
+## 📦 Сборка приложения для всех платформ
+
+Приложение поддерживает сборку для **7 платформ**:
+
+### Автоматическая сборка
+
+```bash
+# Интерактивная сборка (выбор платформ)
+make build-all
+
+# Или прямо из папки entry_point
+cd entry_point
+./build_all.sh
+```
+
+### Сборка конкретной платформы
+
+```bash
+# Web версия (рекомендуется для разработки)
+make build-web
+
+# Android (APK + AAB)
+make build-android
+
+# Linux (AppImage)
+make build-linux
+
+# Windows (EXE)
+make build-windows
+
+# macOS (DMG) — требуется macOS
+make build-macos
+
+# iOS (IPA) — требуется macOS
+make build-ios
+```
+
+**Готовые файлы находятся в папке** `release/`.
+
+### Системные требования для сборки
+
+| ОС | Требования |
+|----|-----------|
+| **Web** | Встроено в Flutter, не требует доп. ПО |
+| **Android** | Android SDK, Java 11, Gradle |
+| **Linux** | CMake, GTK 3, development tools |
+| **Windows** | Visual Studio Build Tools или MSVC |
+| **macOS** | Xcode Command Line Tools (требуется macOS) |
+| **iOS** | Xcode 13+ (только macOS) |
+
+**На Ubuntu с Wine для Windows:**
+```bash
+sudo apt install wine wine32 wine64
+make build-windows
+```
+
+Подробнее: [release/README.md](release/README.md)
 
 ---
 

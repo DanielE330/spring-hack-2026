@@ -36,6 +36,16 @@ help:
 	@echo "  make frontend-test      - Запустить тесты frontend"
 	@echo "  make frontend-build     - Собрать web версию"
 	@echo ""
+	@echo "$(GREEN)Release Build$(NC)"
+	@echo "  make build-web          - Собрать web версию"
+	@echo "  make build-android      - Собрать Android (APK + AAB)"
+	@echo "  make build-linux        - Собрать Linux версию"
+	@echo "  make build-windows      - Собрать Windows версию"
+	@echo "  make build-macos        - Собрать macOS версию (требуется macOS)"
+	@echo "  make build-ios          - Собрать iOS версию (требуется macOS)"
+	@echo "  make build-all          - Интерактивная сборка всех платформ"
+	@echo "  make build-linux-gui    - Собрать Linux с GUI (AppImage)"
+	@echo ""
 	@echo "$(GREEN)Утилиты$(NC)"
 	@echo "  make install            - Полная установка обоих частей"
 	@echo "  make lint               - Запустить линтеры"
@@ -142,6 +152,56 @@ format:
 	@echo "Frontend (dart format):"
 	-cd entry_point && $(FLUTTER) format lib/ --set-exit-if-changed
 	@echo "$(GREEN)✓ Форматирование завершено$(NC)"
+
+# ========================================
+# Build Release Versions
+# ========================================
+
+.PHONY: build-web
+build-web:
+	@echo "$(BLUE)Сборка Web версии...$(NC)"
+	cd entry_point && $(FLUTTER) build web --release
+	@echo "$(GREEN)✓ Web версия собрана$(NC)"
+	@echo "Запустить: python3 -m http.server 3000 --directory release/web/"
+
+.PHONY: build-android
+build-android:
+	@echo "$(BLUE)Сборка Android версии...$(NC)"
+	cd entry_point && ./build_specific.sh android
+
+.PHONY: build-linux
+build-linux:
+	@echo "$(BLUE)Сборка Linux версии...$(NC)"
+	cd entry_point && ./build_specific.sh linux
+
+.PHONY: build-windows
+build-windows:
+	@echo "$(BLUE)Сборка Windows версии...$(NC)"
+	cd entry_point && ./build_specific.sh windows
+
+.PHONY: build-macos
+build-macos:
+	@echo "$(BLUE)Сборка macOS версии...$(NC)"
+	cd entry_point && ./build_specific.sh macos
+
+.PHONY: build-ios
+build-ios:
+	@echo "$(BLUE)Сборка iOS версии...$(NC)"
+	cd entry_point && ./build_specific.sh ios
+
+.PHONY: build-all
+build-all:
+	@echo "$(BLUE)Интерактивная сборка для всех платформ...$(NC)"
+	chmod +x entry_point/build_all.sh
+	cd entry_point && ./build_all.sh
+
+.PHONY: build-linux-gui
+build-linux-gui:
+	@echo "$(BLUE)Сборка Linux с AppImage...$(NC)"
+	cd entry_point && $(FLUTTER) build linux --release
+	@echo "$(GREEN)✓ Linux версия собрана в release/linux/$(NC)"
+	@echo "Требуется appimagetool для создания AppImage:"
+	@echo "  sudo apt install appimagetool"
 
 .PHONY: clean
 clean:
